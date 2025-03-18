@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register as Engineer</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header-text">Full name, email password and Department confirm.</div>
+        <div class="register-container">
+            <img src="https://via.placeholder.com/80x40/ff6600/ffffff?text=SKY" alt="Sky Logo" class="logo">
+            <h1>Register as Engineer</h1>
+            
+            <div class="input-group">
+                <label for="fullname">Full name</label>
+                <input type="text" id="fullname" name="fullname">
+            </div>
+            
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email">
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password">
+            </div>
+            
+            <div class="input-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirm-password">
+            </div>
+            
+            <div class="input-group">
+                <label for="department">Select Department</label>
+                <select id="department" name="department">
+                    <option value="" selected disabled>Select Department</option>
+                    <option value="installation">Installation</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="support">Technical Support</option>
+                    <option value="network">Network</option>
+                </select>
+            </div>
+            
+            <button class="btn register-btn">Register</button>
+            
+            <div class="login-link">
+                Already have an account? <a href="index.html">Login here</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('.register-btn').addEventListener('click', function() {
+            // Basic validation example
+            const fullname = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const department = document.getElementById('department').value;
+            
+            if (!fullname || !email || !password || !confirmPassword || !department) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match');
+                return;
+            }
+            
+            // If validation passes, redirect to login page
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
