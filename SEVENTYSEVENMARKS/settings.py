@@ -116,11 +116,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
-# If you have additional directories for static files
 STATICFILES_DIRS = [
     BASE_DIR / 'healthcheck/static',  # Add the 'static' directory inside your app
 ]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
