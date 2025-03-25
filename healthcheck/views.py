@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.template import loader
 
 
 def index(request):
@@ -10,3 +11,11 @@ def register(request):
   
 def login(request):
     return render(request, "login.html")
+
+def test(request):
+    template = loader.get_template("test.html")
+    context = {
+        "title": "this is a test page",
+    }
+    
+    return HttpResponse(template.render(context, request))
