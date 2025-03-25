@@ -1,5 +1,7 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: "Inter", Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -80,6 +82,59 @@ select {
     background-position: right 12px top 50%;
     background-size: 12px auto;
     padding-right: 30px;
+}
+
+select.input-field {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 16px;
+}
+
+select.input-field:focus {
+    outline: none;
+    border-color: #ccc;
+}
+
+/* Style for select dropdown */
+select.input-field {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #fff; /* or match your input background */
+    cursor: pointer;
+    padding-right: 30px !important; /* Space for the arrow */
+    position: relative;
+}
+
+/* Container for the select */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* Custom arrow styling */
+.select-wrapper::after {
+    content: "\f107"; /* FontAwesome arrow down */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #666;
+}
+
+/* Hover effect */
+.select-wrapper:hover {
+    cursor: pointer;
+}
+
+.select-wrapper:hover select {
+    border-color: #ccc; /* Match your default border color */
 }
 
 .btn {
