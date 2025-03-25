@@ -109,10 +109,32 @@ select.input-field {
     position: relative;
 }
 
+select.disabled-field {
+    background-color: #f5f5f5; /* Light grey background */
+    color: #a1a1a1; /* Grey text */
+    border-color: #ddd; /* Match the border color */
+    pointer-events: none; /* Allow interaction */
+    cursor: not-allowed; /* Show "not allowed" cursor */
+}
+
+/* Style for disabled input fields */
+.disabled-field {
+    background-color: #f5f5f5; /* Light grey background */
+    color: #a1a1a1; /* Grey text */
+    border-color: #ddd; /* Match the border color */
+    pointer-events: none; /* Allow interaction */
+    cursor: not-allowed; /* Show "not allowed" cursor */
+}
+
 /* Container for the select */
 .select-wrapper {
     position: relative;
     width: 100%;
+}
+
+.select-wrapper .disabled-field {
+    pointer-events: none; /* Allow interaction */
+    cursor: not-allowed; /* Show "not allowed" cursor */
 }
 
 /* Custom arrow styling */

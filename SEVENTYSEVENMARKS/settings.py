@@ -123,7 +123,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'healthcheck/static',  # Add the 'static' directory inside your app
+    BASE_DIR / 'healthcheck/static',
 ]
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'

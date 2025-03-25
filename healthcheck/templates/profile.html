@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Profile</title>
+        <link
+            rel="stylesheet"
+            href="{% static 'healthcheck/css/styles.css' %}"
+        />
+        <script
+            src="https://kit.fontawesome.com/b4269277b2.js"
+            crossorigin="anonymous"
+        ></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="register-container">
+                <img
+                    src="{% static 'healthcheck/images/sky.png' %}"
+                    alt="Sky Logo"
+                    class="logo"
+                />
+                <h1>Profile</h1>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <label for="id_username">Username</label>
+                        {{ user_form.username }}
+                    </div>
+                    <div class="input-group">
+                        <label for="id_first_name">First Name</label>
+                        {{ user_form.first_name }}
+                    </div>
+                    <div class="input-group">
+                        <label for="id_last_name">Last Name</label>
+                        {{ user_form.last_name }}
+                    </div>
+                    <div class="input-group">
+                        <label for="id_email">Email</label>
+                        {{ user_form.email }}
+                    </div>
+
+                    <div class="input-group">
+                        <label for="id_role">Role</label>
+                        {{ profile_form.role }}
+                    </div>
+
+                    <button type="submit" class="btn">Save changes</button>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
