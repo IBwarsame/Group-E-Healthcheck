@@ -2,43 +2,54 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineer Login</title>
-    <link rel="stylesheet" href="{% static 'healthcheck/css/login.css' %}">
-</head>
-<body>
-    <div class="login-container">
-        <img src="https://via.placeholder.com/80x40/ff6600/ffffff?text=SKY" alt="Sky Logo" class="logo">
-        <h1>Engineer Login</h1>
-        
-        <div class="input-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email">
-        </div>
-        
-        <div class="input-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password">
-        </div>
-        
-        <button class="btn" id="login-btn">Log in</button>
-        
-        <a href="#" class="forgot-password">Forgot Password?</a>
-        
-        <button class="btn" id="register-redirect-btn">Register</button>
-    </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Engineer Login</title>
+        <link
+            rel="stylesheet"
+            href="{% static 'healthcheck/css/styles.css' %}"
+        />
+    </head>
+    <body>
+        <div class="login-container">
+            <img
+                src="{% static 'healthcheck/images/sky.png' %}"
+                alt="Sky Logo"
+                class="logo"
+            />
+            <h1>Engineer Login</h1>
 
-    <script>
-        document.getElementById('login-btn').addEventListener('click', function() {
-            // Basic login validation could go here
-            alert('Login attempt processed');
-        });
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" />
+            </div>
 
-        document.getElementById('register-redirect-btn').addEventListener('click', function() {
-            window.location.href = 'register.html';
-        });
-    </script>
-</body>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" />
+            </div>
+
+            <button class="btn" id="login-btn">Log in</button>
+
+            <a href="#" class="forgot-password">Forgot Password?</a>
+
+            <button class="btn" id="register-redirect-btn">Register</button>
+        </div>
+
+        <script>
+            document
+                .getElementById("login-btn")
+                .addEventListener("click", function () {
+                    // Basic login validation could go here
+                    alert("Login attempt processed");
+                });
+
+            document
+                .getElementById("register-redirect-btn")
+                .addEventListener("click", function () {
+                    window.location.href = "/register";
+                });
+        </script>
+    </body>
 </html>
