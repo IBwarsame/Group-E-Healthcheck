@@ -27,6 +27,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+LOGIN_URL = '/login'
+LOGIN_REDIRECT_URL = '/home'
+LOGOUT_REDIRECT_URL = '/login'
+
+# Session Settings
+SESSION_COOKIE_AGE = 1209600  # Session timeout in seconds (2 weeks default)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Whether to expire session when browser closes
 
 # Application definition
 

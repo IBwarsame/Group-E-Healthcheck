@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Home</title>
+        <script
+            src="https://kit.fontawesome.com/b4269277b2.js"
+            crossorigin="anonymous"
+        ></script>
+    </head>
+    <body>
+        <h1>Welcome, {{ user.username }}!</h1>
+
+        {% if user.is_authenticated %}
+        <p>Email: {{ user.email }}</p>
+        <p>Last login: {{ user.last_login }}</p>
+        <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+        <p>Please log in to see your details.</p>
+        <a href="{% url 'login' %}">Login</a>
+        <a href="{% url 'register' %}">Register</a>
+        {% endif %}
+    </body>
+</html>

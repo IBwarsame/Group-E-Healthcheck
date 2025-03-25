@@ -10,6 +10,10 @@
             rel="stylesheet"
             href="{% static 'healthcheck/css/styles.css' %}"
         />
+        <script
+            src="https://kit.fontawesome.com/b4269277b2.js"
+            crossorigin="anonymous"
+        ></script>
     </head>
     <body>
         <div class="container">
@@ -19,85 +23,172 @@
                     alt="Sky Logo"
                     class="logo"
                 />
-                <h1>Register as Engineer</h1>
+                <h1>Register as an Engineer</h1>
 
-                <div class="input-group">
-                    <label for="fullname">Full name</label>
-                    <input type="text" id="fullname" name="fullname" />
-                </div>
+                <form method="post">
+                    {% csrf_token %} {% if form.errors %}
+                    <div class="error-message">
+                        {% for field in form %} {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                        {% endfor %} {% endfor %}
+                    </div>
+                    {% endif %}
 
-                <div class="input-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" />
-                </div>
+                    <div class="input-group">
+                        <label for="{{ form.username.id_for_label }}"
+                            >Username</label
+                        >
+                        {{ form.username }}
+                    </div>
 
-                <div class="input-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" />
-                </div>
+                    <div class="input-group">
+                        <label for="{{ form.email.id_for_label }}">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="error-message">
+                            {% for error in form.email.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
 
-                <div class="input-group">
-                    <label for="confirm-password">Confirm Password</label>
-                    <input
-                        type="password"
-                        id="confirm-password"
-                        name="confirm-password"
-                    />
-                </div>
+                    <div class="input-group">
+                        <label for="{{ form.password1.id_for_label }}"
+                            >Password</label
+                        >
+                        {{ form.password1 }}
+                        <div class="password-strength">
+                            <div class="strength-meter"></div>
+                        </div>
+                        <div class="password-requirements">
+                            <div class="requirement" data-requirement="length">
+                                <span class="check-icon"
+                                    ><i class="fa-solid fa-check"></i
+                                ></span>
+                                <span class="cross-icon"
+                                    ><i class="fa-solid fa-xmark"></i
+                                ></span>
+                                At least 8 characters
+                            </div>
+                            <div class="requirement" data-requirement="number">
+                                <span class="check-icon"
+                                    ><i class="fa-solid fa-check"></i
+                                ></span>
+                                <span class="cross-icon"
+                                    ><i class="fa-solid fa-xmark"></i
+                                ></span>
+                                Contains a number
+                            </div>
+                            <div
+                                class="requirement"
+                                data-requirement="uppercase"
+                            >
+                                <span class="check-icon"
+                                    ><i class="fa-solid fa-check"></i
+                                ></span>
+                                <span class="cross-icon"
+                                    ><i class="fa-solid fa-xmark"></i
+                                ></span>
+                                Contains uppercase letter
+                            </div>
+                            <div
+                                class="requirement"
+                                data-requirement="lowercase"
+                            >
+                                <span class="check-icon"
+                                    ><i class="fa-solid fa-check"></i
+                                ></span>
+                                <span class="cross-icon"
+                                    ><i class="fa-solid fa-xmark"></i
+                                ></span>
+                                Contains lowercase letter
+                            </div>
+                            <div class="requirement" data-requirement="special">
+                                <span class="check-icon"
+                                    ><i class="fa-solid fa-check"></i
+                                ></span>
+                                <span class="cross-icon"
+                                    ><i class="fa-solid fa-xmark"></i
+                                ></span>
+                                Contains special character
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="input-group">
-                    <label for="department">Select Department</label>
-                    <select id="department" name="department">
-                        <option value="" selected disabled>
-                            Select Department
-                        </option>
-                        <option value="installation">Installation</option>
-                        <option value="maintenance">Maintenance</option>
-                        <option value="support">Technical Support</option>
-                        <option value="network">Network</option>
-                    </select>
-                </div>
+                    <div class="input-group">
+                        <label for="{{ form.password2.id_for_label }}"
+                            >Confirm Password</label
+                        >
+                        {{ form.password2 }}
+                    </div>
+                    <div class="login-button-group">
+                        <button type="submit" class="btn register-btn">
+                            Register
+                        </button>
+                    </div>
 
-                <button class="btn register-btn">Register</button>
-
-                <div class="login-link">
-                    Already have an account? <a href="/login">Login here</a>
-                </div>
+                    <div class="login-link">
+                        Already have an account?
+                        <a href="{% url 'login' %}">Login here</a>
+                    </div>
+                </form>
             </div>
         </div>
 
         <script>
-            document
-                .querySelector(".register-btn")
-                .addEventListener("click", function () {
-                    // Basic validation example
-                    const fullname = document.getElementById("fullname").value;
-                    const email = document.getElementById("email").value;
-                    const password = document.getElementById("password").value;
-                    const confirmPassword =
-                        document.getElementById("confirm-password").value;
-                    const department =
-                        document.getElementById("department").value;
+            document.addEventListener("DOMContentLoaded", function () {
+                const passwordInput = document.getElementById(
+                    "{{ form.password1.auto_id }}"
+                );
+                const requirements = {
+                    length: (str) => str.length >= 8,
+                    number: (str) => /[0-9]/.test(str),
+                    uppercase: (str) => /[A-Z]/.test(str),
+                    lowercase: (str) => /[a-z]/.test(str),
+                    special: (str) => /[^A-Za-z0-9]/.test(str),
+                };
 
-                    if (
-                        !fullname ||
-                        !email ||
-                        !password ||
-                        !confirmPassword ||
-                        !department
-                    ) {
-                        alert("Please fill in all fields");
-                        return;
+                const strengthMeter = document.querySelector(".strength-meter");
+
+                passwordInput.addEventListener("input", function (e) {
+                    const password = e.target.value;
+                    let metRequirements = 0;
+
+                    // Check each requirement
+                    Object.entries(requirements).forEach(
+                        ([requirement, validateFunc]) => {
+                            const metRequirement = validateFunc(password);
+                            const requirementElement = document.querySelector(
+                                `[data-requirement="${requirement}"]`
+                            );
+
+                            if (metRequirement) {
+                                requirementElement.classList.add("met");
+                                metRequirements++;
+                            } else {
+                                requirementElement.classList.remove("met");
+                            }
+                        }
+                    );
+
+                    // Update strength meter
+                    const strength =
+                        (metRequirements / Object.keys(requirements).length) *
+                        100;
+                    strengthMeter.style.width = `${strength}%`;
+
+                    if (strength <= 25) {
+                        strengthMeter.style.backgroundColor = "#ff4d4d";
+                    } else if (strength <= 50) {
+                        strengthMeter.style.backgroundColor = "#ffd700";
+                    } else if (strength <= 75) {
+                        strengthMeter.style.backgroundColor = "#90EE90";
+                    } else {
+                        strengthMeter.style.backgroundColor = "#28a745";
                     }
-
-                    if (password !== confirmPassword) {
-                        alert("Passwords do not match");
-                        return;
-                    }
-
-                    // If validation passes, redirect to login page
-                    window.location.href = "/login";
                 });
+            });
         </script>
     </body>
 </html>
