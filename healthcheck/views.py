@@ -86,3 +86,9 @@ def test_view(request):
     }
     
     return HttpResponse(template.render(context, request))
+
+def card_form_view(request):
+    context = {
+        "title": "Card Form Page",
+    }
+    return render(request, "card_form.html", context)
