@@ -1,24 +1,307 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{{ title }}</title>
-        <link
-            rel="stylesheet"
-            href="{% static 'healthcheck/css/styles.css' %}"
-        />
-        <script
-            src="https://kit.fontawesome.com/b4269277b2.js"
-            crossorigin="anonymous"
-        ></script>
-    </head>
-    <body>
-        {% include 'navbar.html' %}
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- <link rel="stylesheet" href="{% static 'healthcheck/css/styles.css' %}" /> -->
+
+    <title>{{ title }}</title>
+
+    <script src="https://kit.fontawesome.com/b4269277b2.js" crossorigin="anonymous"></script>
+
+    <style>
+        .voting-grid {
+            display: grid;
+            grid-template-columns: 50% 50%;
+            margin: 10px;
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        .team-selection label {
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .team-selection select {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+        }
+
+
+        @media (min-width: 768px) {
+            .voting-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Voting Cards */
+        .voting-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            text-align: center;
+            padding: 10px;
+            margin: 10px;
 
 
 
+            border-radius: 10px;
 
-    </body>
+        }
+
+        .voting-card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            text-align: center;
+        }
+
+        /* Voting Options */
+        .voting-options {
+            display: flex;
+            justify-content: space-between; /* Ensures equal spacing between vote circles */
+            align-items: center; /* Aligns items vertically in the center */
+            gap: 1rem; /* Optional: Adds consistent spacing between items */
+        }
+
+        .vote-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* Vote Circles */
+        .vote-circle {
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        /* Circle colours */
+        .vote-circle.green {
+            background-color: #10b981;
+        }
+
+        .vote-circle.yellow {
+            background-color: #f59e0b;
+        }
+
+        .vote-circle.red {
+            background-color: #ef4444;
+        }
+
+        .vote-circle:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Selected State */
+        .selected {
+            outline: 3px solid #3b82f6;
+            outline-offset: 3px;
+        }
+
+        /* Vote Labels */
+        .vote-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        /* Submit Button */
+        .submit-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .submit-button {
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 2.5rem;
+            border-radius: 9999px;
+            font-size: 1.125rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background-color: #2563eb;
+        }
+
+        /* Hidden Utility Class */
+        .hidden {
+            display: none;
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="main-content">
+        <!-- Team Selection -->
+        <div class="team-selection">
+            <label for="team-select">Select a team</label>
+            <div class="select-container">
+                <select id="team-select" name="team" required>
+                    <option value="" disabled selected>Select...</option>
+                    <option value="Team Alpha">Team Alpha</option>
+                    <option value="Team Beta">Team Beta</option>
+                    <option value="Team Gamma">Team Gamma</option>
+                    <option value="Team Delta">Team Delta</option>
+                </select>
+                <div class="select-icon">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M7 7l3-3 3 3m0 6l-3 3-3-3"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <form id="vote-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="team" id="team-input" value="">
+
+            <!-- Voting Cards Grid -->
+            <div class="voting-grid">
+                <div class="voting-card">
+                    <h2>Code Base Health</h2>
+                    <div class="voting-options">
+                        <div class="vote-option" data-category="code_base_health" data-value="Good">
+                            <div class="vote-circle" style="background-color: #00FF00;"></div>
+                            <span class="vote-label">Good</span>
+                        </div>
+                        <div class="vote-option" data-category="code_base_health" data-value="Neutral">
+                            <div class="vote-circle" style="background-color: #FFA500;"></div>
+                            <span class="vote-label">Neutral</span>
+                        </div>
+                        <div class="vote-option" data-category="code_base_health" data-value="Needs Improvement">
+                            <div class="vote-circle" style="background-color: #FF0000;"></div>
+                            <span class="vote-label">Needs Improvement</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="code_base_health" id="code_base_health-input" value="">
+                </div>
+
+                <div class="voting-card">
+                    <h2>Stakeholder Engagement</h2>
+                    <div class="voting-options">
+                        <div class="vote-option" data-category="stakeholder_engagement" data-value="Good">
+                            <div class="vote-circle" style="background-color: #00FF00;"></div>
+                            <span class="vote-label">Good</span>
+                        </div>
+                        <div class="vote-option" data-category="stakeholder_engagement" data-value="Neutral">
+                            <div class="vote-circle" style="background-color: #FFA500;"></div>
+                            <span class="vote-label">Neutral</span>
+                        </div>
+                        <div class="vote-option" data-category="stakeholder_engagement" data-value="Needs Improvement">
+                            <div class="vote-circle" style="background-color: #FF0000;"></div>
+                            <span class="vote-label">Needs Improvement</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="stakeholder_engagement" id="stakeholder_engagement-input" value="">
+                </div>
+
+                <div class="voting-card">
+                    <h2>Release Process</h2>
+                    <div class="voting-options">
+                        <div class="vote-option" data-category="release_process" data-value="Good">
+                            <div class="vote-circle" style="background-color: #00FF00;"></div>
+                            <span class="vote-label">Good</span>
+                        </div>
+                        <div class="vote-option" data-category="release_process" data-value="Neutral">
+                            <div class="vote-circle" style="background-color: #FFA500;"></div>
+                            <span class="vote-label">Neutral</span>
+                        </div>
+                        <div class="vote-option" data-category="release_process" data-value="Needs Improvement">
+                            <div class="vote-circle" style="background-color: #FF0000;"></div>
+                            <span class="vote-label">Needs Improvement</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="release_process" id="release_process-input" value="">
+                </div>
+
+                <div class="voting-card">
+                    <h2>Technical Debt</h2>
+                    <div class="voting-options">
+                        <div class="vote-option" data-category="technical_debt" data-value="Good">
+                            <div class="vote-circle" style="background-color: #00FF00;"></div>
+                            <span class="vote-label">Good</span>
+                        </div>
+                        <div class="vote-option" data-category="technical_debt" data-value="Neutral">
+                            <div class="vote-circle" style="background-color: #FFA500;"></div>
+                            <span class="vote-label">Neutral</span>
+                        </div>
+                        <div class="vote-option" data-category="technical_debt" data-value="Needs Improvement">
+                            <div class="vote-circle" style="background-color: #FF0000;"></div>
+                            <span class="vote-label">Needs Improvement</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="technical_debt" id="technical_debt-input" value="">
+                </div>
+
+                <div class="voting-card">
+                    <h2>Teamwork & Collaboration</h2>
+                    <div class="voting-options">
+                        <div class="vote-option" data-category="teamwork_collaboration" data-value="Good">
+                            <div class="vote-circle" style="background-color: #00FF00;"></div>
+                            <span class="vote-label">Good</span>
+                        </div>
+                        <div class="vote-option" data-category="teamwork_collaboration" data-value="Neutral">
+                            <div class="vote-circle" style="background-color: #FFA500;"></div>
+                            <span class="vote-label">Neutral</span>
+                        </div>
+                        <div class="vote-option" data-category="teamwork_collaboration" data-value="Needs Improvement">
+                            <div class="vote-circle" style="background-color: #FF0000;"></div>
+                            <span class="vote-label">Needs Improvement</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="teamwork_collaboration" id="teamwork_collaboration-input" value="">
+                </div>
+
+                <div class="voting-card">
+                    <h2>Delivery Speed</h2>
+                    <div class="voting-options">
+                        <div class="vote-option" data-category="delivery_speed" data-value="Good">
+                            <div class="vote-circle" style="background-color: #00FF00;"></div>
+                            <span class="vote-label">Good</span>
+                        </div>
+                        <div class="vote-option" data-category="delivery_speed" data-value="Neutral">
+                            <div class="vote-circle" style="background-color: #FFA500;"></div>
+                            <span class="vote-label">Neutral</span>
+                        </div>
+                        <div class="vote-option" data-category="delivery_speed" data-value="Needs Improvement">
+                            <div class="vote-circle" style="background-color: #FF0000;"></div>
+                            <span class="vote-label">Needs Improvement</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="delivery_speed" id="delivery_speed-input" value="">
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="submit-container">
+                <button type="submit" class="submit-button">Submit vote</button>
+            </div>
+        </form>
+    </div>
+</body>
+
 </html>
