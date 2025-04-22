@@ -422,3 +422,24 @@ select.disabled-field {
         grid-template-columns: 1fr;
     }
 }
+
+
+.forgot-password {
+    text-align: right;
+    margin-top: 5px;
+    font-size: 0.8rem;
+}
+
+.helper-text {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
