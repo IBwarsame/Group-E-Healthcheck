@@ -1,0 +1,69 @@
+    {% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Dashboard</title>
+        <link
+            rel="stylesheet"
+            href="{% static 'healthcheck/css/styles.css' %}"
+        />
+        <link rel="stylesheet" href="{% static 'healthcheck/css/home.css' %}" />
+        <script
+            src="https://kit.fontawesome.com/b4269277b2.js"
+            crossorigin="anonymous"
+        ></script>
+    </head>
+    <body class="dashboard-body">
+        {% include 'navbar.html' %}
+
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h1>Dashboard</h1>
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div class="user-details">
+                        <p class="user-name">
+                            {{ user.first_name }} {{ user.last_name }}
+                        </p>
+                        <p class="user-role">
+                            Role: {{ user.userprofile.role|title }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="dashboard-card">
+                    <h2>Welcome to your Dashboard</h2>
+                    <p>
+                        This is your personalized dashboard where you can view
+                        and manage your health check activities.
+                    </p>
+                </div>
+
+                <div class="dashboard-card">
+                    <h2>Quick Actions</h2>
+                    <div class="dashboard-actions">
+                        <a
+                            href="{% url 'card_form' %}"
+                            class="dashboard-action-btn"
+                        >
+                            <i class="fas fa-clipboard-check"></i>
+                            <span>Submit Health Check</span>
+                        </a>
+                        <a
+                            href="{% url 'profile' %}"
+                            class="dashboard-action-btn"
+                        >
+                            <i class="fas fa-user-edit"></i>
+                            <span>View Profile</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

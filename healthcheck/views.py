@@ -92,3 +92,11 @@ def card_form_view(request):
         "title": "Card Form Page",
     }
     return render(request, "card_form.html", context)
+
+@login_required
+def dashboard_view(request):
+    context = {
+        'user': request.user,
+        'title': 'Dashboard'
+    }
+    return render(request, 'dashboard.html', context)
