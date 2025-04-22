@@ -16,6 +16,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
 from django import forms
+# Add this line at the top of your views.py
+from .models import HealthCheckSession, Team, Vote
+
 
 # Your existing views
 def index(request):
@@ -94,38 +97,6 @@ def test_view(request):
         "title": "this is a test page",
     }
     return HttpResponse(template.render(context, request))
-
-@login_required
-def card_form_view(request):
-    if request.method == 'POST':
-        team = request.POST.get('team')
-        code_base_health = request.POST.get('code_base_health')
-        stakeholder_engagement = request.POST.get('stakeholder_engagement')
-        release_process = request.POST.get('release_process')
-        technical_debt = request.POST.get('technical_debt')
-        teamwork_collaboration = request.POST.get('teamwork_collaboration')
-        delivery_speed = request.POST.get('delivery_speed')
-        
-        # Here you would save the votes to your database
-        # For example:
-        # Vote.objects.create(
-        #     team=team,
-        #     user=request.user,
-        #     code_base_health=code_base_health,
-        #     stakeholder_engagement=stakeholder_engagement,
-        #     release_process=release_process,
-        #     technical_debt=technical_debt,
-        #     teamwork_collaboration=teamwork_collaboration,
-        #     delivery_speed=delivery_speed
-        # )
-        
-        messages.success(request, "Your votes have been submitted successfully!")
-        return redirect('team_dashboard')
-    
-    context = {
-        "title": "Team Health Check Voting",
-    }
-    return render(request, "card_form.html", context)
 
 @login_required
 def dashboard_view(request):
@@ -253,3 +224,46 @@ def password_reset_complete(request):
 # Keep this for backward compatibility if needed
 def forgot_password(request):
     return redirect('password_reset')
+
+@login_required
+def card_form_view(request):
+    if request.method == 'POST':
+        session_id = request.POST.get('session')
+        team_id = request.POST.get('team')
+        
+        # Validate session and team
+        try:
+            session = HealthCheckSession.objects.get(id=session_id)
+            team = Team.objects.get(id=team_id)
+        except (HealthCheckSession.DoesNotExist, Team.DoesNotExist):
+            messages.error(request, 'Invalid session or team selected')
+            return redirect('card_form')
+        
+        # Process votes for each card type
+        for card_type, _ in Vote.CARD_TYPES:
+            vote_value = request.POST.get(f'vote_{card_type}')
+            progress_value = request.POST.get(f'progress_{card_type}')
+            comments = request.POST.get(f'comments_{card_type}')
+            
+            # Update or create vote
+            Vote.objects.update_or_create(
+                user=request.user,
+                team=team,
+                session=session,
+                card_type=card_type,
+                defaults={
+                    'vote': vote_value,
+                    'progress': progress_value,
+                    'comments': comments
+                }
+            )
+        
+        messages.success(request, 'Your votes have been saved successfully!')
+        return redirect('team_dashboard')
+    
+    context = {
+        'sessions': HealthCheckSession.objects.all().order_by('-start_date'),
+        'teams': Team.objects.all().order_by('name'),
+        'card_types': Vote.CARD_TYPES,
+    }
+    return render(request, 'card_form.html', context)
