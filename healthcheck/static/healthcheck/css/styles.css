@@ -21,6 +21,21 @@ form {
     flex-direction: column;
     align-items: center;
     gap: 20px;
+    width: 100%;
+}
+
+.home-button {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+}
+
+.home-button a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    padding: 0;
 }
 
 /* Shared styles for both login and register */
@@ -33,6 +48,10 @@ form {
     width: 100%;
     max-width: 350px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .container {

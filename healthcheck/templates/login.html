@@ -16,8 +16,6 @@
         ></script>
     </head>
     <body>
-        {% include 'navbar.html' %}
-
         <div class="login-container">
             <img
                 src="{% static 'healthcheck/images/sky.png' %}"
@@ -49,12 +47,16 @@
                     >
                     {{ form.password }}
                     <div class="forgot-password">
-                        <a href="{% url 'password_reset' %}">Forgot password?</a>
+                        <a href="{% url 'password_reset' %}"
+                            >Forgot password?</a
+                        >
                     </div>
                 </div>
 
                 <div class="login-button-group">
-                    <button class="btn" id="register-btn" type="button">Register</button>
+                    <button class="btn" id="register-btn" type="button">
+                        Register
+                    </button>
                     <button type="submit" class="btn" id="login-btn">
                         Log in
                     </button>
