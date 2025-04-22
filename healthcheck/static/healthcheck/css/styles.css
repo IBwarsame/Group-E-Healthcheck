@@ -1,16 +1,20 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
+
+
 body {
     font-family: "Inter", Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
     margin: 0;
     background-color: #f5f5f5;
 }
 
 form {
+    font-family: "Inter", Arial, sans-serif;
+    display: flex;
+    /* justify-content: center;
+    align-items: center; */
+    /* height: 100vh; */
+    margin: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -18,8 +22,8 @@ form {
 }
 
 /* Shared styles for both login and register */
-.login-container,
-.register-container {
+form .login-container,
+form .register-container {
     background-color: white;
     padding: 30px;
     border-radius: 10px;
@@ -29,7 +33,7 @@ form {
     text-align: center;
 }
 
-.container {
+form .container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -37,7 +41,7 @@ form {
     width: 100%;
 }
 
-.header-text {
+form .header-text {
     background-color: #333;
     color: white;
     width: 100%;
@@ -47,27 +51,27 @@ form {
     border-top-right-radius: 10px;
 }
 
-.logo {
+form .logo {
     width: 125px;
 }
 
-h1 {
+form h1 {
     font-size: 24px;
     color: #333;
 }
 
-.input-group {
+form .input-group {
     text-align: left;
     width: 100%;
 }
 
-label {
+form label {
     display: block;
     font-weight: 500;
 }
 
-input,
-select {
+form input,
+form select {
     width: 100%;
     padding: 12px;
     border: 1px solid #ccc;
@@ -76,7 +80,7 @@ select {
     box-sizing: border-box;
 }
 
-select {
+form select {
     appearance: none;
     background-repeat: no-repeat;
     background-position: right 12px top 50%;
@@ -84,7 +88,7 @@ select {
     padding-right: 30px;
 }
 
-select.input-field {
+form select.input-field {
     width: 100%;
     padding: 10px;
     border: 1px solid #ddd;
@@ -93,13 +97,13 @@ select.input-field {
     font-size: 16px;
 }
 
-select.input-field:focus {
+form select.input-field:focus {
     outline: none;
     border-color: #ccc;
 }
 
 /* Style for select dropdown */
-select.input-field {
+form select.input-field {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -109,7 +113,7 @@ select.input-field {
     position: relative;
 }
 
-select.disabled-field {
+form select.disabled-field {
     background-color: #f5f5f5; /* Light grey background */
     color: #a1a1a1; /* Grey text */
     border-color: #ddd; /* Match the border color */
@@ -118,7 +122,7 @@ select.disabled-field {
 }
 
 /* Style for disabled input fields */
-.disabled-field {
+form .disabled-field {
     background-color: #f5f5f5; /* Light grey background */
     color: #a1a1a1; /* Grey text */
     border-color: #ddd; /* Match the border color */
@@ -127,18 +131,18 @@ select.disabled-field {
 }
 
 /* Container for the select */
-.select-wrapper {
+form .select-wrapper {
     position: relative;
     width: 100%;
 }
 
-.select-wrapper .disabled-field {
+form .select-wrapper .disabled-field {
     pointer-events: none; /* Allow interaction */
     cursor: not-allowed; /* Show "not allowed" cursor */
 }
 
 /* Custom arrow styling */
-.select-wrapper::after {
+form .select-wrapper::after {
     content: "\f107"; /* FontAwesome arrow down */
     font-family: "Font Awesome 6 Free";
     font-weight: 900;
@@ -151,15 +155,15 @@ select.disabled-field {
 }
 
 /* Hover effect */
-.select-wrapper:hover {
+form .select-wrapper:hover {
     cursor: pointer;
 }
 
-.select-wrapper:hover select {
+form .select-wrapper:hover select {
     border-color: #ccc; /* Match your default border color */
 }
 
-.btn {
+form .btn {
     background-color: #0077c8;
     color: white;
     padding: 12px;
@@ -170,37 +174,37 @@ select.disabled-field {
     cursor: pointer;
 }
 
-.btn:hover {
+form .btn:hover {
     background-color: #005fa3;
 }
 
-.register-btn {
+form .register-btn {
     width: auto;
     padding: 12px 40px;
     display: inline-block;
 }
 
-.forgot-password {
+form .forgot-password {
     display: block;
     color: #333;
     text-decoration: none;
 }
 
-.forgot-password:hover,
-.login-link a:hover {
+form .forgot-password:hover,
+form .login-link a:hover {
     text-decoration: underline;
 }
 
-.login-link {
+form .login-link {
     font-size: 14px;
 }
 
-.login-link a {
+form .login-link a {
     color: #0077c8;
     text-decoration: none;
 }
 
-.login-button-group {
+form .login-button-group {
     width: 100%;
     display: flex;
     justify-content: center;
@@ -208,43 +212,44 @@ select.disabled-field {
     gap: 10px;
 }
 
-.login-button-group button {
+form .login-button-group button {
     flex-grow: 1;
 }
 
-.password-requirements {
+form .password-requirements {
     margin: 10px 0;
     font-size: 0.9em;
 }
-.requirement {
+form .requirement {
     display: flex;
     align-items: center;
     gap: 5px;
     margin: 5px 0;
 }
-.check-icon {
+form .check-icon {
     color: green;
     display: none;
 }
-.cross-icon {
+form .cross-icon {
     color: red;
     display: inline;
 }
-.requirement.met .check-icon {
+form .requirement.met .check-icon {
     display: inline;
 }
-.requirement.met .cross-icon {
+form .requirement.met .cross-icon {
     display: none;
 }
-.password-strength {
+form .password-strength {
     margin-top: 5px;
     height: 5px;
     background-color: #eee;
     border-radius: 3px;
 }
-.strength-meter {
+form .strength-meter {
     height: 100%;
     width: 0;
     border-radius: 3px;
     transition: width 0.3s, background-color 0.3s;
 }
+
