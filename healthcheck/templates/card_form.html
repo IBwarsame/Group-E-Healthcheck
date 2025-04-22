@@ -37,10 +37,7 @@
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 30px;
-            }
-
-            .logo img {
-                height: 50px;
+                width: 40%;
             }
 
             .team-select {
@@ -103,15 +100,15 @@
             }
 
             .vote-button.good {
-                background-color: #98FB98;
+                background-color: #98fb98;
             }
 
             .vote-button.neutral {
-                background-color: #FFB366;
+                background-color: #ffb366;
             }
 
             .vote-button.needs-improvement {
-                background-color: #FF9999;
+                background-color: #ff9999;
             }
 
             .vote-icon {
@@ -157,7 +154,10 @@
         <div class="container">
             <div class="header">
                 <div class="logo">
-                    <img src="{% static 'healthcheck/images/sky.png' %}" alt="Sky Logo">
+                    <img
+                        src="{% static 'healthcheck/images/sky.png' %}"
+                        alt="Sky Logo"
+                    />
                 </div>
                 <select class="team-select">
                     <option value="">Select a Team</option>
@@ -282,32 +282,43 @@
 
         <script>
             // Handle vote button selection
-            document.querySelectorAll('.vote-button').forEach(button => {
-                button.addEventListener('click', function() {
+            document.querySelectorAll(".vote-button").forEach((button) => {
+                button.addEventListener("click", function () {
                     // Remove selected class from siblings
-                    const siblings = this.parentElement.querySelectorAll('.vote-button');
-                    siblings.forEach(sib => sib.classList.remove('selected'));
-                    
+                    const siblings =
+                        this.parentElement.querySelectorAll(".vote-button");
+                    siblings.forEach((sib) => sib.classList.remove("selected"));
+
                     // Add selected class to clicked button
-                    this.classList.add('selected');
+                    this.classList.add("selected");
                 });
             });
 
             // Handle form submission
-            document.querySelector('.submit-button').addEventListener('click', function() {
-                // Collect all votes
-                const votes = {};
-                document.querySelectorAll('.health-check-card').forEach(card => {
-                    const category = card.querySelector('.card-title').textContent;
-                    const selectedVote = card.querySelector('.vote-button.selected');
-                    votes[category] = selectedVote ? selectedVote.querySelector('.vote-label').textContent : null;
-                });
+            document
+                .querySelector(".submit-button")
+                .addEventListener("click", function () {
+                    // Collect all votes
+                    const votes = {};
+                    document
+                        .querySelectorAll(".health-check-card")
+                        .forEach((card) => {
+                            const category =
+                                card.querySelector(".card-title").textContent;
+                            const selectedVote = card.querySelector(
+                                ".vote-button.selected"
+                            );
+                            votes[category] = selectedVote
+                                ? selectedVote.querySelector(".vote-label")
+                                      .textContent
+                                : null;
+                        });
 
-                console.log('Votes:', votes);
-                
-                // Redirect to home page after submission
-                window.location.href = "{% url 'home' %}";
-            });
+                    console.log("Votes:", votes);
+
+                    // Redirect to home page after submission
+                    window.location.href = "{% url 'home' %}";
+                });
         </script>
     </body>
 </html>
