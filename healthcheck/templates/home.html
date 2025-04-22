@@ -23,13 +23,17 @@
                 width: 100%;
                 max-width: 500px;
                 text-align: center;
+                justify-content: center;
+                align-items: center;
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
             }
 
             .menu-grid {
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 20px;
-                margin-top: 30px;
             }
 
             .menu-item {
@@ -51,7 +55,6 @@
             .menu-item i {
                 font-size: 2em;
                 color: #0077c8;
-                margin-bottom: 10px;
             }
 
             .menu-item h3 {
@@ -68,7 +71,6 @@
 
             .welcome-text {
                 color: #333;
-                margin-bottom: 20px;
             }
 
             .user-name {
@@ -79,14 +81,18 @@
     </head>
     <body>
         {% include 'navbar.html' %}
-        
+
         <div class="home-container">
-            <img
-                src="{% static 'healthcheck/images/sky.png' %}"
-                alt="Sky Logo"
-                class="logo"
-            />
-            <h2 class="welcome-text">Welcome, <span class="user-name">{{ user.first_name }}</span></h2>
+            <div class="logo">
+                <img
+                    src="{% static 'healthcheck/images/sky.png' %}"
+                    alt="Sky Logo"
+                />
+            </div>
+
+            <h2 class="welcome-text">
+                Welcome, <span class="user-name">{{ user.first_name }}</span>
+            </h2>
 
             <div class="menu-grid">
                 <a href="{% url 'team_dashboard' %}" class="menu-item">

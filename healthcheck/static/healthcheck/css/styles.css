@@ -54,7 +54,27 @@ form {
 }
 
 .logo {
-    /* width: 125px; */
+    width: 125px;
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.logo img {
+    width: 100%;
+    height: auto;
+}
+
+.nav-logo {
+    width: 75px;
+    height: auto;
+}
+
+.nav-logo img {
+    width: 100%;
+    height: auto;
 }
 
 h1 {
