@@ -10,6 +10,7 @@ urlpatterns = [
     path("profile/", views.profile_view, name="profile"),
     path("card-form/", views.card_form_view, name="card_form"),
     path("team-dashboard/", views.team_dashboard_view, name="team_dashboard"),
+    path("dashboard/", views.dashboard_view, name="dashboard"),
     
     # Password reset URLs
     path("forgot-password/", views.password_reset_request, name="password_reset"),
