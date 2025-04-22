@@ -148,6 +148,9 @@ def team_dashboard_view(request):
     }
     return render(request, 'team_dashboard.html', context)
 
+def about_view(request):
+    return render(request, 'about.html')
+
 # Custom password reset forms
 class UserPasswordResetForm(PasswordResetForm):
     email = forms.EmailField(
