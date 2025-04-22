@@ -1,5 +1,12 @@
+{% load static %}
+
 <nav class="navbar">
-    <div class="logo">MyWebsite</div>
+    <div class="logo"><img
+      src="{% static 'healthcheck/images/sky.png' %}"
+      alt="Sky Logo"
+      class="logo"
+
+  /></div>
     <ul class="nav-links">
       <li><a href="#">Home</a></li>
       <li><a href="#">About</a></li>
@@ -17,6 +24,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+img{
+  width: 100px;
+  height: 50px;
 }
 
 body {

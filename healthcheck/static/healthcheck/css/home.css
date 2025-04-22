@@ -4,9 +4,6 @@ body {
     background-color: #f5f5f5;
 }
 
-* {
-    outline: olive 3px solid;
-}
 
 .welcome-user {
 top: 10px;

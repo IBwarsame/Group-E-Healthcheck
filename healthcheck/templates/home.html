@@ -13,7 +13,22 @@
             rel="stylesheet"
             href="{% static 'healthcheck/css/home.css' %}"
         />
+        <style>
+            .live-reports {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+            }
 
+            .graph {
+                width: 45%;
+            }
+
+            canvas {
+                width: 100% !important;
+                height: auto !important;
+            }
+        </style>
     </head>
     <body class="home">
         {% include 'navbar.html' %}
@@ -22,6 +37,10 @@
             <h1>Health Check</h1>
             <p>Welcome to the Health Check application,  {{ user.username }}! </p>
         <div>
+
+            <h2>Dashboard</h2> 
+            
+            <a href="{% url 'card_form' %}" class="btn">Go to Card Forms</a>
 
 
             <div class="dashboard">
@@ -90,7 +109,7 @@
                 
                
             </script>
-                <h2>Dashboard</h2> <a href="{% url 'card_form' %}" class="btn">Go to Card Forms</a>
+               
                 
             </div>
 
