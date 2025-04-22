@@ -1,0 +1,247 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Leader Dashboard</title>
+    <link rel="stylesheet" href="{% static 'healthcheck/css/styles.css' %}">
+    <script src="https://kit.fontawesome.com/b4269277b2.js" crossorigin="anonymous"></script>
+    <style>
+        .dashboard-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo img {
+            height: 50px;
+        }
+        
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .filter-group {
+            width: 48%;
+        }
+        
+        .filter-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .filter-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        .results-table th, .results-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .results-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+        
+        .results-table tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .green-cell {
+            color: #32CD32;
+            font-weight: 600;
+        }
+        
+        .amber-cell {
+            color: #FFA500;
+            font-weight: 600;
+        }
+        
+        .red-cell {
+            color: #FF4136;
+            font-weight: 600;
+        }
+        
+        .action-btn {
+            background-color: #0077c8;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .action-btn:hover {
+            background-color: #005fa3;
+        }
+        
+        .action-container {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="logo">
+                <img src="{% static 'healthcheck/images/sky.png' %}" alt="Sky Logo">
+            </div>
+            <div class="dashboard-title">Team Leader Dashboard</div>
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <div class="filter-label">Select a Team</div>
+                <select class="filter-select" id="team-select">
+                    <option value="engineering_team_a">Engineering Team A</option>
+                    <option value="engineering_team_b">Engineering Team B</option>
+                    <option value="product_team">Product Team</option>
+                    <option value="design_team">Design Team</option>
+                    <option value="marketing_team">Marketing Team</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <div class="filter-label">Select Health Check Cards to View</div>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="codebase-health" checked>
+                        <label for="codebase-health">Codebase Health</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="release-process" checked>
+                        <label for="release-process">Release Process</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="teamwork-collaboration" checked>
+                        <label for="teamwork-collaboration">Teamwork & Collaboration</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="stakeholder-engagement" checked>
+                        <label for="stakeholder-engagement">Stakeholder Engagement</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="technical-debt" checked>
+                        <label for="technical-debt">Technical Debt</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <h2>Voting Results for Engineering Team A</h2>
+        
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Health Check Card</th>
+                    <th>Green</th>
+                    <th>Amber</th>
+                    <th>Red</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Codebase Health</td>
+                    <td class="green-cell">10</td>
+                    <td class="amber-cell">5</td>
+                    <td class="red-cell">3</td>
+                </tr>
+                <tr>
+                    <td>Release Process</td>
+                    <td class="green-cell">8</td>
+                    <td class="amber-cell">7</td>
+                    <td class="red-cell">3</td>
+                </tr>
+                <tr>
+                    <td>Teamwork & Collaboration</td>
+                    <td class="green-cell">12</td>
+                    <td class="amber-cell">4</td>
+                    <td class="red-cell">2</td>
+                </tr>
+                <tr>
+                    <td>Stakeholder Engagement</td>
+                    <td class="green-cell">0</td>
+                    <td class="amber-cell">0</td>
+                    <td class="red-cell">0</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="action-container">
+            <a href="#" class="action-btn">View Trends</a>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle team selection change
+            document.getElementById('team-select').addEventListener('change', function() {
+                const team = this.value;
+                // In a real application, you would fetch data for the selected team
+                // and update the table
+                document.querySelector('h2').textContent = `Voting Results for ${team.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}`;
+            });
+            
+            // Handle checkbox changes to show/hide rows
+            const checkboxes = document.querySelectorAll('.checkbox-item input');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const cardType = this.id;
+                    // In a real application, you would show/hide the corresponding rows
+                    // This is just a placeholder for the functionality
+                    console.log(`${cardType} is now ${this.checked ? 'visible' : 'hidden'}`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
