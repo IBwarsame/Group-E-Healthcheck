@@ -1,6 +1,16 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+class Department(models.Model):
+    name = models.CharField(max_length=100, unique=True) # Department names should be unique
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['name']
+        
 class UserProfile(models.Model):
     ROLES = (
         ('engineer', 'Engineer'),
@@ -12,13 +22,29 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLES, default='engineer')
     
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL, # If department is deleted, set this field to null
+        related_name='staff',      # How to refer to staff from a department object
+        null=True,                 # Allow profile to not have a department
+        blank=True                 # Allow the field to be blank in forms/admin
+    )
+    
     def __str__(self):
-        return f"{self.user.username} ({self.get_role_display()})"
+        dept_name = f" ({self.department.name})" if self.department else ""
+        return f"{self.user.username} ({self.get_role_display()}{dept_name})"
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
+    # --- Add ForeignKey to Department ---
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.PROTECT,
+        related_name='teams',
+        null=True,
+        blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-
     members = models.ManyToManyField(User, through='TeamMembership', related_name='teams_joined')
 
     def __str__(self):
@@ -40,7 +66,7 @@ class TeamMembership(models.Model):
 
     class Meta:
         unique_together = ('user', 'team')
-        ordering = ['team__name', 'user__username']
+        ordering = ['team__department__name', 'team__name', 'user__username'] # Order by dept, then team, then user
 
     def __str__(self):
         return f"{self.user.username} in {self.team.name}"
@@ -51,13 +77,11 @@ class Vote(models.Model):
         ('neutral', 'Neutral'),
         ('needs_improvement', 'Needs Improvement'),
     ]
-
     PROGRESS_CHOICES = [
         ('improving', 'Improving'),
         ('stable', 'Stable'),
         ('declining', 'Declining'),
     ]
-
     CARD_TYPES = [
         ('code_base', 'Code Base Health'),
         ('stakeholder', 'Stakeholder Engagement'),
@@ -82,3 +106,4 @@ class Vote(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.team.name} - {self.card_type} - {self.vote}"
+    

@@ -77,6 +77,34 @@
                 color: #0077c8;
                 font-weight: 600;
             }
+
+            .user-details { /* Add some spacing for new details */
+                margin-top: 10px;
+                font-size: 0.95em;
+                color: #555;
+                line-height: 1.5;
+            }
+            .detail-label {
+                font-weight: 600;
+                color: #333;
+            }
+            .detail-list {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+                display: inline; /* Keep items on the same line if short */
+            }
+            .detail-list li {
+                display: inline;
+                margin-right: 5px;
+                padding: 2px 6px;
+                background-color: #e9ecef;
+                border-radius: 4px;
+                font-size: 0.9em;
+            }
+             .detail-list li:last-child {
+                 margin-right: 0;
+             }
         </style>
     </head>
     <body>
@@ -91,10 +119,42 @@
             <h2 class="welcome-text">
                 Welcome,
                 <span class="user-name">{{ user.first_name }}</span>
-                <br/>
-                Role:
-                <span class="user-name">{{ user_role }}</span>
             </h2>
+            <div class="user-details">
+                <div>
+                    <span class="detail-label">Role:</span>
+                    <ul class="detail-list">
+                        <li class="user-role-display">{{ user_profile.get_role_display }}</li>
+                    </ul>
+                </div>
+
+                {# Display Departments #}
+                {% if user_departments %}
+                    <div>
+                        <span class="detail-label">Department{{ user_departments|length|pluralize }}:</span>
+                        <ul class="detail-list">
+                            {% for dept_name in user_departments %}
+                                <li>{{ dept_name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                {# Display Teams #}
+                {% if user_teams %}
+                    <div>
+                        <span class="detail-label">Team{{ user_teams|length|pluralize }}:</span>
+                         <ul class="detail-list">
+                            {% for team_name in user_teams %}
+                                <li>{{ team_name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% else %}
+                     {# Optional: Message if user is not in any teams #}
+                     <!-- <p style="font-style: italic; color: #888; margin-top: 5px;">Not currently assigned to a team.</p> -->
+                {% endif %}
+            </div>
 
             <div class="menu-grid">
                 <a href="{% url 'profile' %}" class="menu-item">

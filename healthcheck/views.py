@@ -19,7 +19,7 @@ from django import forms
 from django.urls import reverse
 
 # Add this line at the top of your views.py
-from .models import HealthCheckSession, Team, Vote, TeamMembership
+from .models import HealthCheckSession, Team, Vote, TeamMembership, UserProfile, Department
 
 
 # Your existing views
@@ -28,10 +28,45 @@ def index(request):
 
 @login_required
 def home(request):
-    user_role = request.user.userprofile.role
+    # --- Get UserProfile ---
+    try:
+        # It's good practice to handle the case where UserProfile might not exist yet
+        user_profile = request.user.userprofile
+        user_role = user_profile.role
+    except UserProfile.DoesNotExist:
+        # Handle error appropriately - maybe log out, show error, or create profile
+        messages.error(request, "User profile not found. Please contact support.")
+        # Redirect or return an error response if needed
+        user_profile = None
+        user_role = None
+        # return redirect('logout') # Example action
+
+    # --- Get Memberships (only if profile exists) ---
+    user_teams = []
+    user_departments_list = []
+    if user_profile: # Check if profile exists before querying memberships
+        memberships = TeamMembership.objects.filter(
+            user=request.user
+        ).select_related(
+            'team', 'team__department'
+        ).order_by(
+            'team__department__name', 'team__name'
+        )
+        user_departments = set()
+        if memberships.exists():
+            for membership in memberships:
+                user_teams.append(membership.team.name)
+                if membership.team.department:
+                    user_departments.add(membership.team.department.name)
+        user_departments_list = sorted(list(user_departments))
+
+    # --- Update Context ---
     context = {
         'user': request.user,
-        'user_role': user_role
+        'user_profile': user_profile,
+        'user_role': user_role, # Keep this too, might be useful elsewhere
+        'user_teams': user_teams,
+        'user_departments': user_departments_list,
     }
     return render(request, 'home.html', context)
 
@@ -129,54 +164,106 @@ def dashboard_view(request):
 
 @login_required
 def team_dashboard_view(request):
-    all_teams = Team.objects.all().order_by('name')
-    # Get sessions newest first for the dropdown default
-    all_sessions = HealthCheckSession.objects.all().order_by('-start_date')
-    all_card_types = Vote.CARD_TYPES
+    # Get user profile and role
+    user_profile = request.user.userprofile
+    user_role = user_profile.role
+    user_department = user_profile.department # Dept Leader's assigned dept
 
-    # Get selections from GET parameters
+    # --- Determine Relevant Departments for Filtering ---
+    all_departments = Department.objects.all()
+    relevant_departments = all_departments # Default for Senior Manager / Admin
+
+    if user_role == 'departmentLeader':
+        if user_department:
+            # Dept Leaders only see their own department
+            relevant_departments = Department.objects.filter(id=user_department.id)
+        else:
+            # Dept Leader not assigned to a department - show none? Or all? Show none for safety.
+            messages.warning(request, "You are not assigned to a department. Please contact an administrator.")
+            relevant_departments = Department.objects.none()
+    elif user_role in ['engineer', 'teamLeader']:
+        # Engineers/Team Leaders see departments they belong to via team memberships
+        user_department_ids = Team.objects.filter(
+            teammembership__user=request.user,
+            department__isnull=False
+        ).values_list('department_id', flat=True).distinct()
+        relevant_departments = Department.objects.filter(id__in=list(user_department_ids))
+    # Add logic for Senior Manager if they should see all or specific ones
+
+    # --- Get Selected Department from Request ---
+    selected_department_id = request.GET.get('department')
+    selected_department = None
+
+    # --- Filter Teams based on Department and User Scope ---
+    teams_queryset = Team.objects.select_related('department') # Base queryset
+
+    # Validate and apply selected department filter
+    if selected_department_id:
+        try:
+            # Ensure the selected department is one the user is allowed to see
+            selected_department = relevant_departments.get(id=selected_department_id)
+            teams_queryset = teams_queryset.filter(department=selected_department)
+        except Department.DoesNotExist:
+            messages.error(request, "Invalid department selected for your role.")
+            selected_department_id = None # Reset invalid selection
+            teams_queryset = Team.objects.none() # Show no teams if invalid dept selected
+    else:
+        # No department selected - apply default scope based on role
+        if user_role == 'departmentLeader':
+            if user_department:
+                teams_queryset = teams_queryset.filter(department=user_department)
+                selected_department_id = str(user_department.id) # Pre-select their department
+                selected_department = user_department
+            else:
+                teams_queryset = Team.objects.none() # Dept leader with no dept sees no teams
+        elif user_role in ['engineer', 'teamLeader']:
+            # Show teams only from the departments they belong to
+            teams_queryset = teams_queryset.filter(department__in=relevant_departments)
+        # For Senior Manager, default might be to show all teams (no additional filter needed here)
+
+    all_teams_in_scope = teams_queryset.order_by('name')
+
+    # --- Session and Vote Filtering Logic ---
+    all_sessions = HealthCheckSession.objects.all().order_by('-start_date')
     selected_team_id = request.GET.get('team')
     selected_session_id = request.GET.get('session')
-    # Get the state of the new checkbox (will be None if not checked)
     my_votes_only = request.GET.get('my_votes_only')
 
     selected_team = None
     selected_session = None
     display_data = []
-    is_filtered_my_votes = bool(my_votes_only) # Convert to boolean for template
+    is_filtered_my_votes = bool(my_votes_only)
 
-    # Default selection logic
-    if not selected_team_id and all_teams.exists():
-        selected_team_id = all_teams.first().id
+    # Default team selection (first team *within the current scope*)
+    if not selected_team_id and all_teams_in_scope.exists():
+        selected_team_id = all_teams_in_scope.first().id
+
+    # Default session selection
     if not selected_session_id and all_sessions.exists():
-        selected_session_id = all_sessions.first().id # Default to latest session
+        selected_session_id = all_sessions.first().id
 
-    # Fetch selected objects
+    # Fetch selected objects (validate selected_team_id against all_teams_in_scope)
     try:
         if selected_team_id:
-            selected_team = Team.objects.get(id=selected_team_id)
+            # Ensure the selected team is within the user's allowed scope (already filtered)
+            selected_team = all_teams_in_scope.get(id=selected_team_id)
         if selected_session_id:
             selected_session = HealthCheckSession.objects.get(id=selected_session_id)
     except (Team.DoesNotExist, HealthCheckSession.DoesNotExist, ValueError):
+        # This error is less likely now for Team, as it's pre-filtered, but keep for Session
         messages.error(request, "Invalid team or session selected.")
-        selected_team = None
-        selected_session = None
-        selected_team_id = None
-        selected_session_id = None
+        selected_team = None # Reset if team validation somehow failed
+        # Don't reset department/session selection necessarily
 
-    # Fetch and process data if selection is valid
+    # --- Fetch and process vote data (remains the same) ---
     if selected_team and selected_session:
-        # Start with the base query
         base_query = Vote.objects.filter(
             team=selected_team,
             session=selected_session
         )
-
-        # Apply user filter *if* the checkbox was checked
         if is_filtered_my_votes:
             base_query = base_query.filter(user=request.user)
 
-        # Perform aggregation on the (potentially filtered) query
         vote_aggregation = base_query.values('card_type').annotate(
             good_count=Count(Case(When(vote='good', then=1))),
             neutral_count=Count(Case(When(vote='neutral', then=1))),
@@ -185,10 +272,10 @@ def team_dashboard_view(request):
             stable_count=Count(Case(When(progress='stable', then=1))),
             declining_count=Count(Case(When(progress='declining', then=1))),
             total_votes=Count('id')
-        ).order_by('card_type') # Keep order consistent if needed
+        ).order_by('card_type')
 
         results_dict = {item['card_type']: item for item in vote_aggregation}
-
+        all_card_types = Vote.CARD_TYPES
         for code, name in all_card_types:
             display_data.append({
                 'code': code,
@@ -198,16 +285,17 @@ def team_dashboard_view(request):
 
     context = {
         'title': 'Team Dashboard',
-        'teams': all_teams,
+        'departments': relevant_departments, # Pass the filtered list of depts user can see
+        'teams': all_teams_in_scope,       # Pass the filtered list of teams
         'sessions': all_sessions,
-        # 'all_card_types': all_card_types, # Not needed directly if using display_data
+        'selected_department_id': selected_department_id,
         'selected_team': selected_team,
         'selected_session': selected_session,
         'selected_team_id': selected_team_id,
         'selected_session_id': selected_session_id,
         'display_data': display_data,
-        'is_filtered_my_votes': is_filtered_my_votes, # Pass filter state
-        # Remove chart-related context variables
+        'is_filtered_my_votes': is_filtered_my_votes,
+        'user_role': user_role,
     }
     return render(request, 'team_dashboard.html', context)
 
@@ -319,31 +407,56 @@ def forgot_password(request):
 
 @login_required
 def card_form_view(request):
-    # Get ALL teams, ordered by name
-    all_teams = Team.objects.all().order_by('name')
+    # --- Determine Teams within User's Department(s) ---
 
-    # Find the user's memberships to determine the default
-    user_memberships = TeamMembership.objects.filter(user=request.user).select_related('team').order_by('team__name')
+    # 1. Find the distinct IDs of departments the user belongs to via their team memberships
+    user_department_ids = Team.objects.filter(
+        teammembership__user=request.user,
+        department__isnull=False # Only consider teams that HAVE a department
+    ).values_list(
+        'department_id', flat=True
+    ).distinct()
+
+    # 2. Get all teams belonging to those departments
+    teams_in_user_departments = Team.objects.filter(
+        department_id__in=list(user_department_ids) # Filter teams by the user's department IDs
+    ).order_by('department__name', 'name') # Order by department, then team name
+
+    # --- Default Team Selection (from the filtered list) ---
     default_team_id = None
+    if teams_in_user_departments.exists():
+        # Try to find the first team the user is ACTUALLY a member of within their departments
+        first_membership = TeamMembership.objects.filter(
+            user=request.user,
+            team__in=teams_in_user_departments # Look only within the allowed teams
+        ).select_related('team').order_by('team__department__name', 'team__name').first()
 
-    # Determine the default team ID if the user has memberships
-    if user_memberships.exists():
-        default_team_id = user_memberships.first().team.id
+        if first_membership:
+            default_team_id = first_membership.team.id
+        else:
+            # Fallback if user has memberships but maybe not in the filtered list? (unlikely)
+            # Or just select the first team in their departments list
+            default_team_id = teams_in_user_departments.first().id
 
+
+    # --- Session Data ---
+    all_sessions = HealthCheckSession.objects.all().order_by('-start_date')
+
+    # --- POST Request Handling ---
     if request.method == 'POST':
         session_id = request.POST.get('session')
-        team_id = request.POST.get('team') # This is the selected team ID
+        team_id = request.POST.get('team')
 
         try:
             session = HealthCheckSession.objects.get(id=session_id)
-            # Get the selected team - no need to validate against user membership anymore
-            team = Team.objects.get(id=team_id)
+            # Validate the selected team is one within the user's allowed departments
+            team = teams_in_user_departments.get(id=team_id)
         except (HealthCheckSession.DoesNotExist, Team.DoesNotExist, ValueError):
-            messages.error(request, 'Invalid session or team selected.')
-            
+            messages.error(request, 'Invalid session or team selected for your department(s).')
+            # Redisplay form with error, passing the CORRECTLY filtered teams list
             context = {
-                'sessions': HealthCheckSession.objects.all().order_by('-start_date'),
-                'teams': all_teams,
+                'sessions': all_sessions,
+                'teams': teams_in_user_departments, # Pass the filtered list
                 'card_types': Vote.CARD_TYPES,
                 'default_team_id': default_team_id,
                 'selected_session_id': session_id,
@@ -351,19 +464,19 @@ def card_form_view(request):
             }
             return render(request, 'card_form.html', context)
 
+        # --- Vote processing logic (remains the same) ---
         validation_failed = False
         for card_type, card_name in Vote.CARD_TYPES:
             vote_value = request.POST.get(f'vote_{card_type}')
             progress_value = request.POST.get(f'progress_{card_type}')
-
             if not vote_value or not progress_value:
                  messages.error(request, f'Missing vote or progress for {card_name}.')
                  validation_failed = True
 
         if validation_failed:
             context = {
-                'sessions': HealthCheckSession.objects.all().order_by('-start_date'),
-                'teams': all_teams, # Pass all teams
+                'sessions': all_sessions,
+                'teams': teams_in_user_departments, # Pass filtered list
                 'card_types': Vote.CARD_TYPES,
                 'default_team_id': default_team_id,
                 'selected_session_id': session_id,
@@ -372,34 +485,32 @@ def card_form_view(request):
             }
             return render(request, 'card_form.html', context)
 
+        # If validation passed, save votes
         for card_type, _ in Vote.CARD_TYPES:
             vote_value = request.POST.get(f'vote_{card_type}')
             progress_value = request.POST.get(f'progress_{card_type}')
             comments = request.POST.get(f'comments_{card_type}')
-
             Vote.objects.update_or_create(
-                user=request.user,
-                team=team,
-                session=session,
-                card_type=card_type,
-                defaults={
-                    'vote': vote_value,
-                    'progress': progress_value,
-                    'comments': comments
-                }
+                user=request.user, team=team, session=session, card_type=card_type,
+                defaults={'vote': vote_value, 'progress': progress_value, 'comments': comments}
             )
+        # --- End vote processing ---
 
         messages.success(request, 'Your votes have been saved successfully!')
-        # Redirect to the team dashboard, passing the team and session IDs as query parameters
         redirect_url = reverse('team_dashboard') + f'?team={team.id}&session={session.id}'
         return redirect(redirect_url)
 
+    # --- Context for GET Request ---
     context = {
-        'sessions': HealthCheckSession.objects.all().order_by('-start_date'),
-        'teams': all_teams,
+        'sessions': all_sessions,
+        'teams': teams_in_user_departments, # Pass the filtered list of teams
         'card_types': Vote.CARD_TYPES,
         'default_team_id': default_team_id,
     }
+    # Handle case where user belongs to no departments/teams
+    if not teams_in_user_departments.exists():
+         messages.info(request, "You are not currently assigned to any teams within a department. Please contact an administrator.")
+
     return render(request, 'card_form.html', context)
 
 # Helper for error message (optional but cleaner)
