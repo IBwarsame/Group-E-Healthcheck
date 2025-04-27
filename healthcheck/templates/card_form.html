@@ -137,21 +137,38 @@
             {% csrf_token %}
 
 
-            <div class="selectors">
-                <select class="session-select" name="session" required>
-                    <option value="">Select a Session</option>
-                    {% for session in sessions %}
-                        <option value="{{ session.id }}">{{ session.name }}</option>
-                    {% endfor %}
-                </select>
-                <select class="team-select" name="team" required>
-                    <option value="">Select a Team</option>
-                    {% for team in teams %}
-                        <option value="{{ team.id }}">{{ team.name }}</option>
-                    {% endfor %}
-                </select>
+            <div class="selectors" style="margin-bottom: 20px; display: flex; gap: 15px;">
+                <div style="flex-grow: 1;">
+                    <label for="session-select-id" style="display: block; margin-bottom: 5px; font-weight: bold;">Session:</label>
+                    <select id="session-select-id" class="session-select input-field" name="session" required>
+                        <option value="">Select a Session</option>
+                        {% for session in sessions %}
+                            <option value="{{ session.id }}" {% if session.id|stringformat:"s" == selected_session_id %}selected{% endif %}>
+                                {{ session.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="flex-grow: 1;">
+                    <label for="team-select-id" style="display: block; margin-bottom: 5px; font-weight: bold;">Team:</label>
+                    <select id="team-select-id" class="team-select input-field" name="team" required>
+                        <option value="">Select Your Team</option>
+                        {% for team in teams %}
+                            {# Check against selected_team_id first (if redisplaying after POST error) #}
+                            {# Otherwise, check against default_team_id (for initial GET display) #}
+                            <option value="{{ team.id }}"
+                                    {% if team.id|stringformat:"s" == selected_team_id %}
+                                        selected
+                                    {% elif not selected_team_id and team.id == default_team_id %}
+                                        selected
+                                    {% endif %}>
+                                {{ team.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            
+
             <div class="health-checks">
                 {% for card_type, card_name in card_types %}
                 <div class="health-check-card" data-card="{{ card_type }}">

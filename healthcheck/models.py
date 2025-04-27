@@ -11,10 +11,15 @@ class UserProfile(models.Model):
     
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLES, default='engineer')
+    
+    def __str__(self):
+        return f"{self.user.username} ({self.get_role_display()})"
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    members = models.ManyToManyField(User, through='TeamMembership', related_name='teams_joined')
 
     def __str__(self):
         return self.name
@@ -27,6 +32,18 @@ class HealthCheckSession(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.start_date} - {self.end_date})"
+
+class TeamMembership(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    date_joined = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'team')
+        ordering = ['team__name', 'user__username']
+
+    def __str__(self):
+        return f"{self.user.username} in {self.team.name}"
 
 class Vote(models.Model):
     VOTE_CHOICES = [

@@ -1,10 +1,11 @@
 from django.contrib import admin
-from .models import Team, UserProfile, HealthCheckSession, Vote
+from .models import (
+    Team, UserProfile, HealthCheckSession, Vote, TeamMembership
+)
 
 # Register your models here.
 
-admin.site.register(Team)
-
+@admin.register(Team)
 class TeamAdmin(admin.ModelAdmin):
     list_display = ('name', 'created_at')
     search_fields = ('name',)
@@ -18,3 +19,11 @@ class HealthCheckSessionAdmin(admin.ModelAdmin):
     list_filter = ('start_date', 'end_date')
     readonly_fields = ('created_at',)
     ordering = ('-start_date',)
+
+@admin.register(TeamMembership)
+class TeamMembershipAdmin(admin.ModelAdmin):
+    list_display = ('user', 'team', 'date_joined')
+    list_filter = ('team',)
+    search_fields = ('user__username', 'team__name')
+    autocomplete_fields = ['user', 'team']
+    readonly_fields = ('date_joined',)

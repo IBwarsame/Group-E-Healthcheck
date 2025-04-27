@@ -17,7 +17,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
 from django import forms
 # Add this line at the top of your views.py
-from .models import HealthCheckSession, Team, Vote
+from .models import HealthCheckSession, Team, Vote, TeamMembership
 
 
 # Your existing views
@@ -246,25 +246,64 @@ def forgot_password(request):
 
 @login_required
 def card_form_view(request):
+    # Get ALL teams, ordered by name
+    all_teams = Team.objects.all().order_by('name')
+
+    # Find the user's memberships to determine the default
+    user_memberships = TeamMembership.objects.filter(user=request.user).select_related('team').order_by('team__name')
+    default_team_id = None
+
+    # Determine the default team ID if the user has memberships
+    if user_memberships.exists():
+        default_team_id = user_memberships.first().team.id
+
     if request.method == 'POST':
         session_id = request.POST.get('session')
-        team_id = request.POST.get('team')
-        
-        # Validate session and team
+        team_id = request.POST.get('team') # This is the selected team ID
+
         try:
             session = HealthCheckSession.objects.get(id=session_id)
+            # Get the selected team - no need to validate against user membership anymore
             team = Team.objects.get(id=team_id)
-        except (HealthCheckSession.DoesNotExist, Team.DoesNotExist):
-            messages.error(request, 'Invalid session or team selected')
-            return redirect('card_form')
-        
-        # Process votes for each card type
+        except (HealthCheckSession.DoesNotExist, Team.DoesNotExist, ValueError):
+            messages.error(request, 'Invalid session or team selected.')
+            
+            context = {
+                'sessions': HealthCheckSession.objects.all().order_by('-start_date'),
+                'teams': all_teams,
+                'card_types': Vote.CARD_TYPES,
+                'default_team_id': default_team_id,
+                'selected_session_id': session_id,
+                'selected_team_id': team_id,
+            }
+            return render(request, 'card_form.html', context)
+
+        validation_failed = False
+        for card_type, card_name in Vote.CARD_TYPES:
+            vote_value = request.POST.get(f'vote_{card_type}')
+            progress_value = request.POST.get(f'progress_{card_type}')
+
+            if not vote_value or not progress_value:
+                 messages.error(request, f'Missing vote or progress for {card_name}.')
+                 validation_failed = True
+
+        if validation_failed:
+            context = {
+                'sessions': HealthCheckSession.objects.all().order_by('-start_date'),
+                'teams': all_teams, # Pass all teams
+                'card_types': Vote.CARD_TYPES,
+                'default_team_id': default_team_id,
+                'selected_session_id': session_id,
+                'selected_team_id': team_id,
+                'submitted_data': request.POST
+            }
+            return render(request, 'card_form.html', context)
+
         for card_type, _ in Vote.CARD_TYPES:
             vote_value = request.POST.get(f'vote_{card_type}')
             progress_value = request.POST.get(f'progress_{card_type}')
             comments = request.POST.get(f'comments_{card_type}')
-            
-            # Update or create vote
+
             Vote.objects.update_or_create(
                 user=request.user,
                 team=team,
@@ -276,13 +315,17 @@ def card_form_view(request):
                     'comments': comments
                 }
             )
-        
+
         messages.success(request, 'Your votes have been saved successfully!')
-        return redirect('team_dashboard')
-    
+        return redirect('home')
+
     context = {
         'sessions': HealthCheckSession.objects.all().order_by('-start_date'),
-        'teams': Team.objects.all().order_by('name'),
+        'teams': all_teams,
         'card_types': Vote.CARD_TYPES,
+        'default_team_id': default_team_id,
     }
     return render(request, 'card_form.html', context)
+
+# Helper for error message (optional but cleaner)
+Vote.CARD_TYPES_DICT = dict(Vote.CARD_TYPES)
