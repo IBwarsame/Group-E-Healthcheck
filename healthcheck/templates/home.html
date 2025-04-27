@@ -116,11 +116,18 @@
                 />
             </div>
 
-            <h2 class="welcome-text">
-                Welcome,
-                <span class="user-name">{{ user.first_name }}</span>
-            </h2>
             <div class="user-details">
+                <h2 class="welcome-text">
+                    Welcome,
+                    <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
+                </h2>
+                
+                <div>
+                    <span class="detail-label">Username:</span>
+                    <ul class="detail-list">
+                        <li>{{ user.username }}</li>
+                    </ul>
+                </div>
                 <div>
                     <span class="detail-label">Role:</span>
                     <ul class="detail-list">
@@ -206,22 +213,10 @@
                     <h3>Department Dashboard</h3>
                     <p>View department results</p>
                 </a>
-
-                <a href="{% url 'dashboard' %}" class="menu-item">
-                    <i class="fas fa-building"></i>
-                    <h3>All Teams</h3>
-                    <p>View all teams in department</p>
-                </a>
                 {% endif %}
 
                 <!-- Senior Manager specific menu items -->
                 {% if user_role == 'seniorManager' %}
-                <a href="{% url 'dashboard' %}" class="menu-item">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <h3>Executive Dashboard</h3>
-                    <p>View organization-wide results</p>
-                </a>
-
                 <a href="{% url 'team_dashboard' %}" class="menu-item">
                     <i class="fas fa-sitemap"></i>
                     <h3>Department View</h3>

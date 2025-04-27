@@ -155,14 +155,6 @@ def test_view(request):
     return HttpResponse(template.render(context, request))
 
 @login_required
-def dashboard_view(request):
-    context = {
-        'user': request.user,
-        'title': 'Dashboard'
-    }
-    return render(request, 'dashboard.html', context)
-
-@login_required
 def team_dashboard_view(request):
     # Get user profile and role
     user_profile = request.user.userprofile
@@ -407,12 +399,17 @@ def forgot_password(request):
 
 @login_required
 def card_form_view(request):
-    # --- Determine Teams within User's Department(s) ---
+    # --- Role Check ---
+    if request.user.userprofile.role in ['departmentLeader', 'seniorManager']: # Add other non-voting roles if needed
+        messages.error(request, "Your role does not have permission to submit votes.")
+        return redirect('home') # Or redirect to their specific dashboard if available
+    # --- End Role Check ---
 
-    # 1. Find the distinct IDs of departments the user belongs to via their team memberships
+    # --- Determine Teams within User's Department(s) ---
+    # (Rest of the view remains the same...)
     user_department_ids = Team.objects.filter(
         teammembership__user=request.user,
-        department__isnull=False # Only consider teams that HAVE a department
+        department__isnull=False
     ).values_list(
         'department_id', flat=True
     ).distinct()
