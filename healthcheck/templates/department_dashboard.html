@@ -203,53 +203,38 @@
             let deptChartDatasets = [];
             let deptCtx = null;
 
-            console.log("--- Department Chart Debug ---");
 
             if (deptCtxElement) {
                 deptCtx = deptCtxElement.getContext('2d');
-                console.log("Canvas Context Found:", !!deptCtx);
-            } else {
-                console.log("Canvas Element 'deptSummaryChart' not found.");
             }
-
             if (deptChartLabelsElement) {
                 const rawLabelsString = deptChartLabelsElement.textContent;
-                console.log("Raw Labels JSON String:", rawLabelsString);
                 try {
                     let parsedData = JSON.parse(rawLabelsString);
                     if (typeof parsedData === 'string') {
-                        console.log("Labels parsed as STRING initially, attempting second parse...");
                         parsedData = JSON.parse(parsedData);
                     }
 
                     if (Array.isArray(parsedData)) {
                         deptChartLabels = parsedData;
-                        console.log("Labels successfully parsed as ARRAY:", deptChartLabels);
                     } else {
-                        console.error("Labels data is NOT an array after parsing attempts:", parsedData);
                         deptChartLabels = [];
                     }
                 } catch (e) {
-                    console.error("Error parsing labels JSON:", e);
                     deptChartLabels = [];
                 }
-            } else {
-                console.log("Label data script tag 'chart-labels' not found.");
             }
 
             if (deptChartDatasetsElement) {
                 const rawDatasetsString = deptChartDatasetsElement.textContent;
-                console.log("Raw Datasets JSON String:", rawDatasetsString);
                 try {
                     let parsedData = JSON.parse(rawDatasetsString);
                     if (typeof parsedData === 'string') {
-                        console.log("Datasets parsed as STRING initially, attempting second parse...");
                         parsedData = JSON.parse(parsedData);
                     }
 
                     if (Array.isArray(parsedData)) {
                         deptChartDatasets = parsedData;
-                        console.log("Datasets successfully parsed as ARRAY:", deptChartDatasets);
                     } else {
                         console.error("Datasets data is NOT an array after parsing attempts:", parsedData);
                         deptChartDatasets = [];
@@ -258,20 +243,11 @@
                     console.error("Error parsing datasets JSON:", e);
                     deptChartDatasets = [];
                 }
-            } else {
-                console.log("Dataset data script tag 'chart-datasets' not found.");
             }
 
 
-            console.log("--- Final Check Before Chart Creation ---");
-            console.log("Is Labels Array?", Array.isArray(deptChartLabels));
-            console.log("Labels Length:", deptChartLabels?.length);
-            console.log("Is Datasets Array?", Array.isArray(deptChartDatasets));
-            console.log("Datasets Length:", deptChartDatasets?.length);
-
 
             if (deptCtx && Array.isArray(deptChartLabels) && deptChartLabels.length > 0 && Array.isArray(deptChartDatasets) && deptChartDatasets.length > 0) {
-                console.log("Proceeding to create department chart...");
                 try {
                     const deptSummaryChart = new Chart(deptCtx, {
                         type: 'bar',
@@ -279,15 +255,11 @@
                             labels: deptChartLabels,
                             datasets: deptChartDatasets
                         },
-                        options: { /* ... options ... */ }
+                        options: {}
                     });
-                    console.log("Chart created successfully!");
                 } catch (chartError) {
                     console.error("Error creating chart:", chartError);
                 }
-            } else {
-                console.log("Chart rendering skipped: Conditions not met.");
-                console.log(`Debug Info: Context=${!!deptCtx}, Labels OK=${Array.isArray(deptChartLabels) && deptChartLabels.length > 0}, Datasets OK=${Array.isArray(deptChartDatasets) && deptChartDatasets.length > 0}`);
             }
 
                 document.getElementById('session-select')?.addEventListener('change', function() {
