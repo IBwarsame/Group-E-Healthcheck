@@ -130,6 +130,13 @@
             <div class="logo">
                 <img src="{% static 'healthcheck/images/sky.png' %}" alt="Sky Logo">
             </div>
+            
+        </div>
+    
+        <form id="voteForm" method="POST">
+            {% csrf_token %}
+
+
             <div class="selectors">
                 <select class="session-select" name="session" required>
                     <option value="">Select a Session</option>
@@ -144,10 +151,7 @@
                     {% endfor %}
                 </select>
             </div>
-        </div>
-    
-        <form id="voteForm" method="POST">
-            {% csrf_token %}
+            
             <div class="health-checks">
                 {% for card_type, card_name in card_types %}
                 <div class="health-check-card" data-card="{{ card_type }}">
