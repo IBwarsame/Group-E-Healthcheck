@@ -112,7 +112,7 @@
                     <small>Session: {{ selected_session.name }} ({{ selected_session.start_date }} - {{ selected_session.end_date }})</small>
                 </h2>
 
-                {% if display_data %} {# Check if the list has items #}
+                {% if display_data %}
                     <table class="results-table">
                         <thead>
                             <tr>
@@ -148,8 +148,6 @@
                         </tbody>
                     </table>
                 {% else %}
-                     {# This condition might be hit if Vote.CARD_TYPES is empty, or if results_dict was empty #}
-                     {# The inner 'else' for card_result=None handles the no-votes-per-card case #}
                     <p class="no-data-message">No voting data found for the selected team and session.</p>
                 {% endif %}
 

@@ -197,7 +197,6 @@
                     const password = e.target.value;
                     let metRequirements = 0;
 
-                    // Check each requirement
                     Object.entries(requirements).forEach(
                         ([requirement, validateFunc]) => {
                             const metRequirement = validateFunc(password);
@@ -214,7 +213,6 @@
                         }
                     );
 
-                    // Update strength meter
                     const strength =
                         (metRequirements / Object.keys(requirements).length) *
                         100;

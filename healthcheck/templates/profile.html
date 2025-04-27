@@ -109,7 +109,7 @@
             </div>
             {% endif %}
             
-            <!-- Profile Information Section -->
+            
             <div class="profile-section">
                 <div class="logo">
                     <img
@@ -147,7 +147,7 @@
                 </form>
             </div>
             
-            <!-- Password Change Section -->
+            
             <div class="profile-section">
                 <h2 class="section-title">Change Password</h2>
                 <form method="post">
@@ -240,7 +240,6 @@
                         const password = e.target.value;
                         let metRequirements = 0;
 
-                        // Check each requirement
                         Object.entries(requirements).forEach(
                             ([requirement, validateFunc]) => {
                                 const metRequirement = validateFunc(password);
@@ -257,7 +256,6 @@
                             }
                         );
 
-                        // Update strength meter
                         const strength =
                             (metRequirements / Object.keys(requirements).length) *
                             100;

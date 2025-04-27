@@ -154,8 +154,6 @@
                     <select id="team-select-id" class="team-select input-field" name="team" required>
                         <option value="">Select Your Team</option>
                         {% for team in teams %}
-                            {# Check against selected_team_id first (if redisplaying after POST error) #}
-                            {# Otherwise, check against default_team_id (for initial GET display) #}
                             <option value="{{ team.id }}"
                                     {% if team.id|stringformat:"s" == selected_team_id %}
                                         selected
@@ -219,45 +217,36 @@
     
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle vote button selection
         document.querySelectorAll('.vote-button').forEach(button => {
             button.addEventListener('click', function() {
                 const card = this.closest('.health-check-card');
                 const cardType = card.dataset.card;
                 const voteInput = document.getElementById(`vote_${cardType}`);
                 
-                // Remove selected class from siblings
                 const siblings = this.parentElement.querySelectorAll('.vote-button');
                 siblings.forEach(sib => sib.classList.remove('selected'));
                 
-                // Add selected class to clicked button
                 this.classList.add('selected');
                 
-                // Update hidden input
                 voteInput.value = this.dataset.value;
             });
         });
     
-        // Handle progress button selection
         document.querySelectorAll('.progress-button').forEach(button => {
             button.addEventListener('click', function() {
                 const card = this.closest('.health-check-card');
                 const cardType = card.dataset.card;
                 const progressInput = document.getElementById(`progress_${cardType}`);
                 
-                // Remove selected class from siblings
                 const siblings = this.parentElement.querySelectorAll('.progress-button');
                 siblings.forEach(sib => sib.classList.remove('selected'));
                 
-                // Add selected class to clicked button
                 this.classList.add('selected');
                 
-                // Update hidden input
                 progressInput.value = this.dataset.progress;
             });
         });
     
-        // Handle form submission
         document.getElementById('voteForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -269,7 +258,6 @@
                 return;
             }
             
-            // Validate all cards have votes and progress
             let isValid = true;
             document.querySelectorAll('.health-check-card').forEach(card => {
                 const cardType = card.dataset.card;
@@ -286,11 +274,9 @@
                 return;
             }
             
-            // Submit the form
             this.submit();
         });
     
-        // Load existing votes if any
         function loadExistingVotes() {
             const session = document.querySelector('.session-select').value;
             const team = document.querySelector('.team-select').value;
@@ -299,23 +285,19 @@
                 fetch(`/api/votes/?session=${session}&team=${team}`)
                     .then(response => response.json())
                     .then(data => {
-                        // Populate the form with existing votes
                         data.forEach(vote => {
                             const card = document.querySelector(`.health-check-card[data-card="${vote.card_type}"]`);
                             if (card) {
-                                // Set vote
                                 const voteButton = card.querySelector(`.vote-button[data-value="${vote.vote}"]`);
                                 if (voteButton) {
                                     voteButton.click();
                                 }
                                 
-                                // Set progress
                                 const progressButton = card.querySelector(`.progress-button[data-progress="${vote.progress}"]`);
                                 if (progressButton) {
                                     progressButton.click();
                                 }
                                 
-                                // Set comments
                                 const comments = card.querySelector('textarea');
                                 if (comments) {
                                     comments.value = vote.comments || '';
@@ -326,7 +308,6 @@
             }
         }
     
-        // Add change listeners to session and team selects
         document.querySelector('.session-select').addEventListener('change', loadExistingVotes);
         document.querySelector('.team-select').addEventListener('change', loadExistingVotes);
     });

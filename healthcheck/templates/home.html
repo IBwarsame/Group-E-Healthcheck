@@ -135,7 +135,6 @@
                     </ul>
                 </div>
 
-                {# Display Departments #}
                 {% if user_departments %}
                     <div>
                         <span class="detail-label">Department{{ user_departments|length|pluralize }}:</span>
@@ -147,7 +146,6 @@
                     </div>
                 {% endif %}
 
-                {# Display Teams #}
                 {% if user_teams %}
                     <div>
                         <span class="detail-label">Team{{ user_teams|length|pluralize }}:</span>
@@ -156,10 +154,7 @@
                                 <li>{{ team_name }}</li>
                             {% endfor %}
                         </ul>
-                    </div>
-                {% else %}
-                     {# Optional: Message if user is not in any teams #}
-                     <!-- <p style="font-style: italic; color: #888; margin-top: 5px;">Not currently assigned to a team.</p> -->
+                    </div>                     
                 {% endif %}
             </div>
 
@@ -176,7 +171,7 @@
                     <p>Sign out of your account</p>
                 </a>
 
-                <!-- Engineer specific menu items -->
+                
                 {% if user_role == 'engineer' %}
                 <a href="{% url 'card_form' %}" class="menu-item">
                     <i class="fas fa-clipboard-check"></i>
@@ -191,7 +186,7 @@
                 </a>
                 {% endif %}
 
-                <!-- Team Leader specific menu items -->
+                
                 {% if user_role == 'teamLeader' %}
                 <a href="{% url 'card_form' %}" class="menu-item">
                     <i class="fas fa-clipboard-check"></i>
@@ -206,16 +201,16 @@
                 </a>
                 {% endif %}
 
-                <!-- Department Leader specific menu items -->
+                
                 {% if user_role == 'departmentLeader' %}
-                <a href="{% url 'team_dashboard' %}" class="menu-item">
+                <a href="{% url 'department_dashboard' %}" class="menu-item">
                     <i class="fas fa-chart-bar"></i>
                     <h3>Department Dashboard</h3>
                     <p>View department results</p>
                 </a>
                 {% endif %}
 
-                <!-- Senior Manager specific menu items -->
+                
                 {% if user_role == 'seniorManager' %}
                 <a href="{% url 'team_dashboard' %}" class="menu-item">
                     <i class="fas fa-sitemap"></i>

@@ -1,7 +1,7 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm # Added PasswordChangeForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from django.contrib.auth.models import User
-from .models import UserProfile, Team, TeamMembership # Added Team, TeamMembership
+from .models import UserProfile, Team, TeamMembership
 
 class CustomUserCreationForm(UserCreationForm):
     first_name = forms.CharField(required=True, max_length=30)
@@ -12,43 +12,43 @@ class CustomUserCreationForm(UserCreationForm):
         required=True,
         initial='engineer'
     )
-    # Add the team selection field
+
     team = forms.ModelChoiceField(
         queryset=Team.objects.all().order_by('name'),
-        required=True, # Make it mandatory to select a team
-        empty_label="Select your team", # Placeholder text
+        required=True,
+        empty_label="Select your team",
         help_text="Select the team you belong to."
     )
 
     class Meta:
         model = User
-        # Add 'team' to the fields list
+
         fields = ["username", "first_name", "last_name", "email", "password1", "password2", "role", "team"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Apply styling to the new team field if needed
+
         self.fields['role'].widget.attrs.update({
-            'class': 'input-field', # Assuming you have this class
+            'class': 'input-field',
         })
         self.fields['team'].widget.attrs.update({
-            'class': 'input-field', # Apply consistent styling
+            'class': 'input-field',
         })
-        self.fields['team'].label = "Primary Team" # Customize label if desired
+        self.fields['team'].label = "Primary Team"
 
     def save(self, commit=True):
-        user = super().save(commit=False) # Don't commit the User yet
+        user = super().save(commit=False)
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
         user.email = self.cleaned_data["email"]
 
         if commit:
-            user.save() # Save the User object first
-            # Create the UserProfile
+            user.save()
+
             UserProfile.objects.create(user=user, role=self.cleaned_data["role"])
-            # Get the selected team
+
             selected_team = self.cleaned_data["team"]
-            # Create the TeamMembership link
+
             TeamMembership.objects.create(user=user, team=selected_team)
         return user
 

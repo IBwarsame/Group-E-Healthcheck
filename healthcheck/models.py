@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 class Department(models.Model):
-    name = models.CharField(max_length=100, unique=True) # Department names should be unique
+    name = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -24,10 +24,10 @@ class UserProfile(models.Model):
     
     department = models.ForeignKey(
         Department,
-        on_delete=models.SET_NULL, # If department is deleted, set this field to null
-        related_name='staff',      # How to refer to staff from a department object
-        null=True,                 # Allow profile to not have a department
-        blank=True                 # Allow the field to be blank in forms/admin
+        on_delete=models.SET_NULL,
+        related_name='staff',
+        null=True,
+        blank=True
     )
     
     def __str__(self):
@@ -36,7 +36,7 @@ class UserProfile(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=100)
-    # --- Add ForeignKey to Department ---
+
     department = models.ForeignKey(
         Department,
         on_delete=models.PROTECT,
@@ -66,7 +66,7 @@ class TeamMembership(models.Model):
 
     class Meta:
         unique_together = ('user', 'team')
-        ordering = ['team__department__name', 'team__name', 'user__username'] # Order by dept, then team, then user
+        ordering = ['team__department__name', 'team__name', 'user__username']
 
     def __str__(self):
         return f"{self.user.username} in {self.team.name}"
