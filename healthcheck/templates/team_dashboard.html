@@ -5,7 +5,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Team Dashboard</title>
+        <title>{{ title }}</title>
         <link
             rel="stylesheet"
             href="{% static 'healthcheck/css/styles.css' %}"
@@ -15,119 +15,30 @@
             crossorigin="anonymous"
         ></script>
         <style>
-            .dashboard-container {
-                max-width: 1000px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: white;
-                border-radius: 10px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            }
-
-            .dashboard-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 30px;
-            }
-
-            .dashboard-title {
-                font-size: 24px;
-                font-weight: 600;
-                color: #333;
-            }
-
-            .filters {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 30px;
-            }
-
-            .filter-group {
-                width: 48%;
-            }
-
-            .filter-label {
-                font-weight: 500;
-                margin-bottom: 8px;
-            }
-
-            .filter-select {
-                width: 100%;
-                padding: 10px;
-                border-radius: 5px;
-                border: 1px solid #ccc;
-            }
-
-            .checkbox-group {
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .checkbox-item {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            .results-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-bottom: 30px;
-            }
-
-            .results-table th,
-            .results-table td {
-                padding: 12px;
-                text-align: center;
-                border-bottom: 1px solid #eee;
-            }
-
-            .results-table th {
-                background-color: #f5f5f5;
-                font-weight: 600;
-            }
-
-            .results-table tr:hover {
-                background-color: #f9f9f9;
-            }
-
-            .green-cell {
-                color: #32cd32;
-                font-weight: 600;
-            }
-
-            .amber-cell {
-                color: #ffa500;
-                font-weight: 600;
-            }
-
-            .red-cell {
-                color: #ff4136;
-                font-weight: 600;
-            }
-
-            .action-btn {
-                background-color: #0077c8;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 5px;
-                font-size: 14px;
-                cursor: pointer;
-                text-align: center;
-                display: inline-block;
-                text-decoration: none;
-            }
-
-            .action-btn:hover {
-                background-color: #005fa3;
-            }
-
-            .action-container {
-                text-align: right;
-            }
+            /* Add or adjust styles as needed */
+            .dashboard-container { max-width: 1200px; margin: 20px auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+            .dashboard-title { font-size: 1.8em; color: #333; }
+            .filters { display: flex; gap: 20px; margin-bottom: 30px; align-items: flex-end; }
+            .filter-group { flex: 1; }
+            .filter-label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
+            .filter-select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; background-color: #fff; }
+            .filter-button { padding: 10px 20px; background-color: #0077c8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
+            .filter-button:hover { background-color: #005fa3; }
+            .results-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            .results-table th, .results-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+            .results-table th { background-color: #f8f9fa; font-weight: 600; color: #333; text-align: center; }
+            .results-table td { text-align: center; color: #555; }
+            .results-table tbody tr:hover { background-color: #f1f1f1; }
+            .card-name-col { text-align: left; font-weight: 500; }
+            .green-cell { color: #28a745; font-weight: bold; }
+            .amber-cell { color: #ffc107; font-weight: bold; }
+            .red-cell { color: #dc3545; font-weight: bold; }
+            .improving-cell { color: #17a2b8; } /* Example color */
+            .stable-cell { color: #6c757d; }    /* Example color */
+            .declining-cell { color: #ff7f50; } /* Example color */
+            .no-data-message { text-align: center; padding: 30px; color: #777; font-style: italic; }
+            .progress-col i { margin-right: 4px; }
         </style>
     </head>
     <body>
@@ -141,154 +52,110 @@
                         alt="Sky Logo"
                     />
                 </div>
-                <div class="dashboard-title">Team Leader Dashboard</div>
+                <div class="dashboard-title">{{ title }}</div>
             </div>
 
-            <div class="filters">
-                <div class="filter-group">
-                    <div class="filter-label">Select a Team</div>
-                    <select class="filter-select" id="team-select">
-                        <option value="engineering_team_a">
-                            Engineering Team A
-                        </option>
-                        <option value="engineering_team_b">
-                            Engineering Team B
-                        </option>
-                        <option value="product_team">Product Team</option>
-                        <option value="design_team">Design Team</option>
-                        <option value="marketing_team">Marketing Team</option>
-                    </select>
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="{% if message.tags == 'success' %}success-message{% else %}error-message{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
                 </div>
+            {% endif %}
 
-                <div class="filter-group">
-                    <div class="filter-label">
-                        Select Health Check Cards to View
+            <form method="GET" action="{% url 'team_dashboard' %}">
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="team-select" class="filter-label">Select Team</label>
+                        <select class="filter-select" id="team-select" name="team">
+                            <option value="">All Teams (Select One)</option>
+                            {% for team in teams %}
+                                <option value="{{ team.id }}" {% if team.id|stringformat:"s" == selected_team_id %}selected{% endif %}>
+                                    {{ team.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input
-                                type="checkbox"
-                                id="codebase-health"
-                                checked
-                            />
-                            <label for="codebase-health">Codebase Health</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input
-                                type="checkbox"
-                                id="release-process"
-                                checked
-                            />
-                            <label for="release-process">Release Process</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input
-                                type="checkbox"
-                                id="teamwork-collaboration"
-                                checked
-                            />
-                            <label for="teamwork-collaboration"
-                                >Teamwork & Collaboration</label
-                            >
-                        </div>
-                        <div class="checkbox-item">
-                            <input
-                                type="checkbox"
-                                id="stakeholder-engagement"
-                                checked
-                            />
-                            <label for="stakeholder-engagement"
-                                >Stakeholder Engagement</label
-                            >
-                        </div>
-                        <div class="checkbox-item">
-                            <input
-                                type="checkbox"
-                                id="technical-debt"
-                                checked
-                            />
-                            <label for="technical-debt">Technical Debt</label>
-                        </div>
+
+                    <div class="filter-group">
+                        <label for="session-select" class="filter-label">Select Session</label>
+                        <select class="filter-select" id="session-select" name="session">
+                            <option value="">All Sessions (Select One)</option>
+                            {% for session in sessions %}
+                                <option value="{{ session.id }}" {% if session.id|stringformat:"s" == selected_session_id %}selected{% endif %}>
+                                    {{ session.name }} ({{ session.start_date }} - {{ session.end_date }})
+                                </option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
-            </div>
+            </form>
 
-            <h2>Voting Results for Engineering Team A</h2>
+            {% if selected_team and selected_session %}
+                <h2>
+                    Voting Results for: {{ selected_team.name }}
+                    <br>
+                    <small>Session: {{ selected_session.name }} ({{ selected_session.start_date }} - {{ selected_session.end_date }})</small>
+                </h2>
 
-            <table class="results-table">
-                <thead>
-                    <tr>
-                        <th>Health Check Card</th>
-                        <th>Green</th>
-                        <th>Amber</th>
-                        <th>Red</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Codebase Health</td>
-                        <td class="green-cell">10</td>
-                        <td class="amber-cell">5</td>
-                        <td class="red-cell">3</td>
-                    </tr>
-                    <tr>
-                        <td>Release Process</td>
-                        <td class="green-cell">8</td>
-                        <td class="amber-cell">7</td>
-                        <td class="red-cell">3</td>
-                    </tr>
-                    <tr>
-                        <td>Teamwork & Collaboration</td>
-                        <td class="green-cell">12</td>
-                        <td class="amber-cell">4</td>
-                        <td class="red-cell">2</td>
-                    </tr>
-                    <tr>
-                        <td>Stakeholder Engagement</td>
-                        <td class="green-cell">0</td>
-                        <td class="amber-cell">0</td>
-                        <td class="red-cell">0</td>
-                    </tr>
-                </tbody>
-            </table>
+                {% if display_data %} {# Check if the list has items #}
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th class="card-name-col">Health Check Card</th>
+                                <th><i class="fas fa-smile green-cell"></i> Good</th>
+                                <th><i class="fas fa-meh amber-cell"></i> Neutral</th>
+                                <th><i class="fas fa-frown red-cell"></i> Needs Imp.</th>
+                                <th class="progress-col"><i class="fas fa-arrow-up"></i> Improving</th>
+                                <th class="progress-col"><i class="fas fa-equals"></i> Stable</th>
+                                <th class="progress-col"><i class="fas fa-arrow-down"></i> Declining</th>
+                                <th>Total Votes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {# Iterate through the prepared display_data list from the view #}
+                            {% for item in display_data %}
+                                <tr>
+                                    <td class="card-name-col">{{ item.name }}</td>
+                                    {# Use item.result which is the dict of counts or None #}
+                                    {% with card_result=item.result %}
+                                        {% if card_result %}
+                                            <td class="green-cell">{{ card_result.good_count|default:0 }}</td>
+                                            <td class="amber-cell">{{ card_result.neutral_count|default:0 }}</td>
+                                            <td class="red-cell">{{ card_result.needs_improvement_count|default:0 }}</td>
+                                            <td class="improving-cell">{{ card_result.improving_count|default:0 }}</td>
+                                            <td class="stable-cell">{{ card_result.stable_count|default:0 }}</td>
+                                            <td class="declining-cell">{{ card_result.declining_count|default:0 }}</td>
+                                            <td>{{ card_result.total_votes|default:0 }}</td>
+                                        {% else %}
+                                            {# item.result was None, meaning no votes for this card #}
+                                            <td colspan="7" style="text-align:center; font-style:italic; color:#888;">No votes recorded</td>
+                                        {% endif %}
+                                    {% endwith %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                     {# This condition might be hit if Vote.CARD_TYPES is empty, or if results_dict was empty #}
+                     {# The inner 'else' for card_result=None handles the no-votes-per-card case #}
+                    <p class="no-data-message">No voting data found for the selected team and session.</p>
+                {% endif %}
 
-            <div class="action-container">
-                <a href="#" class="action-btn">View Trends</a>
-            </div>
+            {% else %}
+                 <p class="no-data-message">Please select a team and a session to view results.</p>
+            {% endif %}
+
         </div>
 
         <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                // Handle team selection change
-                document
-                    .getElementById("team-select")
-                    .addEventListener("change", function () {
-                        const team = this.value;
-                        // In a real application, you would fetch data for the selected team
-                        // and update the table
-                        document.querySelector(
-                            "h2"
-                        ).textContent = `Voting Results for ${team
-                            .replace(/_/g, " ")
-                            .replace(/\b\w/g, (l) => l.toUpperCase())}`;
-                    });
-
-                // Handle checkbox changes to show/hide rows
-                const checkboxes = document.querySelectorAll(
-                    ".checkbox-item input"
-                );
-                checkboxes.forEach((checkbox) => {
-                    checkbox.addEventListener("change", function () {
-                        const cardType = this.id;
-                        // In a real application, you would show/hide the corresponding rows
-                        // This is just a placeholder for the functionality
-                        console.log(
-                            `${cardType} is now ${
-                                this.checked ? "visible" : "hidden"
-                            }`
-                        );
-                    });
-                });
+            document.getElementById('team-select').addEventListener('change', function() {
+                this.form.submit();
+            });
+            document.getElementById('session-select').addEventListener('change', function() {
+                this.form.submit();
             });
         </script>
     </body>

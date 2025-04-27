@@ -10,12 +10,14 @@ from .decorators import anonymous_required
 from django.contrib.auth.models import User
 from django.core.mail import send_mail, BadHeaderError
 from django.template.loader import render_to_string
-from django.db.models.query_utils import Q
+from django.db.models import Count, Q, Case, When
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
 from django import forms
+from django.urls import reverse
+
 # Add this line at the top of your views.py
 from .models import HealthCheckSession, Team, Vote, TeamMembership
 
@@ -127,14 +129,72 @@ def dashboard_view(request):
 
 @login_required
 def team_dashboard_view(request):
-    # In a real application, you would fetch the voting data from your database
-    # For example:
-    # teams = Team.objects.all()
-    # selected_team = request.GET.get('team', teams.first().id if teams.exists() else None)
-    # votes = Vote.objects.filter(team=selected_team)
-    
+    all_teams = Team.objects.all().order_by('name')
+    all_sessions = HealthCheckSession.objects.all().order_by('-start_date')
+
+    selected_team_id = request.GET.get('team')
+    selected_session_id = request.GET.get('session')
+
+    selected_team = None
+    selected_session = None
+    display_data = [] # Use this list instead of the raw results dict
+
+    # Default selection logic (remains the same)
+    if not selected_team_id and all_teams.exists():
+        selected_team_id = all_teams.first().id
+    if not selected_session_id and all_sessions.exists():
+        selected_session_id = all_sessions.first().id
+
+    # Fetch selected objects (remains the same)
+    try:
+        if selected_team_id:
+            selected_team = Team.objects.get(id=selected_team_id)
+        if selected_session_id:
+            selected_session = HealthCheckSession.objects.get(id=selected_session_id)
+    except (Team.DoesNotExist, HealthCheckSession.DoesNotExist, ValueError):
+        messages.error(request, "Invalid team or session selected.")
+        selected_team = None
+        selected_session = None
+        selected_team_id = None
+        selected_session_id = None
+
+    # Fetch and process data if selection is valid
+    if selected_team and selected_session:
+        vote_aggregation = Vote.objects.filter(
+            team=selected_team,
+            session=selected_session
+        ).values('card_type').annotate(
+            good_count=Count(Case(When(vote='good', then=1))),
+            neutral_count=Count(Case(When(vote='neutral', then=1))),
+            needs_improvement_count=Count(Case(When(vote='needs_improvement', then=1))),
+            improving_count=Count(Case(When(progress='improving', then=1))),
+            stable_count=Count(Case(When(progress='stable', then=1))),
+            declining_count=Count(Case(When(progress='declining', then=1))),
+            total_votes=Count('id')
+        ).order_by('card_type')
+
+        # Create a dictionary for quick lookup
+        results_dict = {item['card_type']: item for item in vote_aggregation}
+
+        # *** Prepare data for the template ***
+        for code, name in Vote.CARD_TYPES:
+            result_data = results_dict.get(code) # Get results using the code, will be dict or None
+            display_data.append({
+                'code': code,
+                'name': name,
+                'result': result_data # Attach the result dict (or None) directly
+            })
+
     context = {
-        'title': 'Team Leader Dashboard',
+        'title': 'Team Dashboard',
+        'teams': all_teams,
+        'sessions': all_sessions,
+        'selected_team': selected_team,
+        'selected_session': selected_session,
+        'selected_team_id': selected_team_id,
+        'selected_session_id': selected_session_id,
+        'display_data': display_data, # Pass the prepared list
+        # 'results' and 'all_card_types' are no longer needed directly
     }
     return render(request, 'team_dashboard.html', context)
 
@@ -317,7 +377,9 @@ def card_form_view(request):
             )
 
         messages.success(request, 'Your votes have been saved successfully!')
-        return redirect('home')
+        # Redirect to the team dashboard, passing the team and session IDs as query parameters
+        redirect_url = reverse('team_dashboard') + f'?team={team.id}&session={session.id}'
+        return redirect(redirect_url)
 
     context = {
         'sessions': HealthCheckSession.objects.all().order_by('-start_date'),
