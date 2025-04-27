@@ -26,8 +26,10 @@ def index(request):
 
 @login_required
 def home(request):
+    user_role = request.user.userprofile.role
     context = {
         'user': request.user,
+        'user_role': user_role
     }
     return render(request, 'home.html', context)
 
