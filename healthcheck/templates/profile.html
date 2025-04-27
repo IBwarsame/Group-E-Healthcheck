@@ -13,11 +13,104 @@
             src="https://kit.fontawesome.com/b4269277b2.js"
             crossorigin="anonymous"
         ></script>
+        <style>
+            .profile-container {
+                display: flex;
+                flex-direction: row;
+                gap: 30px;
+                max-width: 80vw;
+                margin: 0 auto;
+            }
+
+            .profile-section {
+                background-color: white;
+                padding: 25px;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+
+            }
+
+            .section-title {
+                margin-top: 0;
+                padding-bottom: 15px;
+                border-bottom: 1px solid #eee;
+                color: #333;
+            }
+
+            .password-requirements {
+                margin-top: 15px;
+                padding: 10px;
+                background-color: #f8f9fa;
+                border-radius: 5px;
+                font-size: 0.9em;
+            }
+
+            .requirement {
+                margin: 5px 0;
+                display: flex;
+                align-items: center;
+            }
+
+            .requirement i {
+                margin-right: 8px;
+                color: #ccc;
+            }
+
+            .requirement.met i {
+                color: #28a745;
+            }
+
+            .password-strength {
+                height: 5px;
+                background-color: #eee;
+                margin-top: 10px;
+                border-radius: 5px;
+                overflow: hidden;
+            }
+
+            .strength-meter {
+                height: 100%;
+                width: 0;
+                background-color: #ff4d4d;
+                transition: width 0.3s, background-color 0.3s;
+            }
+
+            .messages {
+                margin-bottom: 20px;
+            }
+
+            .success-message {
+                background-color: #d4edda;
+                color: #155724;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }
+
+            .error-message {
+                background-color: #f8d7da;
+                color: #721c24;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }
+        </style>
     </head>
     <body>
         {% include 'home-button.html' %}
-        <div class="container">
-            <div class="register-container">
+        <div class="container profile-container">
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="{% if message.tags == 'success' %}success-message{% else %}error-message{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Profile Information Section -->
+            <div class="profile-section">
                 <div class="logo">
                     <img
                         src="{% static 'healthcheck/images/sky.png' %}"
@@ -25,7 +118,7 @@
                     />
                 </div>
 
-                <h1>Profile</h1>
+                <h2 class="section-title">Profile Information</h2>
                 <form method="post">
                     {% csrf_token %}
                     <div class="input-group">
@@ -53,6 +146,135 @@
                     <button type="submit" class="btn">Save changes</button>
                 </form>
             </div>
+            
+            <!-- Password Change Section -->
+            <div class="profile-section">
+                <h2 class="section-title">Change Password</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="password_change" value="1">
+                    
+                    <div class="input-group">
+                        <label for="id_old_password">Current Password</label>
+                        {{ password_form.old_password }}
+                        {% if password_form.old_password.errors %}
+                        <div class="error-message">
+                            {% for error in password_form.old_password.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="id_new_password1">New Password</label>
+                        {{ password_form.new_password1 }}
+                        {% if password_form.new_password1.errors %}
+                        <div class="error-message">
+                            {% for error in password_form.new_password1.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="password-strength">
+                            <div class="strength-meter"></div>
+                        </div>
+                        
+                        <div class="password-requirements">
+                            <div class="requirement" data-requirement="length">
+                                <i class="fas fa-check"></i>
+                                At least 8 characters
+                            </div>
+                            <div class="requirement" data-requirement="number">
+                                <i class="fas fa-check"></i>
+                                Contains a number
+                            </div>
+                            <div class="requirement" data-requirement="uppercase">
+                                <i class="fas fa-check"></i>
+                                Contains uppercase letter
+                            </div>
+                            <div class="requirement" data-requirement="lowercase">
+                                <i class="fas fa-check"></i>
+                                Contains lowercase letter
+                            </div>
+                            <div class="requirement" data-requirement="special">
+                                <i class="fas fa-check"></i>
+                                Contains special character
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="id_new_password2">Confirm New Password</label>
+                        {{ password_form.new_password2 }}
+                        {% if password_form.new_password2.errors %}
+                        <div class="error-message">
+                            {% for error in password_form.new_password2.errors %}
+                            <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <button type="submit" class="btn">Change Password</button>
+                </form>
+            </div>
         </div>
+        
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const passwordInput = document.getElementById("id_new_password1");
+                const requirements = {
+                    length: (str) => str.length >= 8,
+                    number: (str) => /[0-9]/.test(str),
+                    uppercase: (str) => /[A-Z]/.test(str),
+                    lowercase: (str) => /[a-z]/.test(str),
+                    special: (str) => /[^A-Za-z0-9]/.test(str),
+                };
+
+                const strengthMeter = document.querySelector(".strength-meter");
+
+                if (passwordInput) {
+                    passwordInput.addEventListener("input", function (e) {
+                        const password = e.target.value;
+                        let metRequirements = 0;
+
+                        // Check each requirement
+                        Object.entries(requirements).forEach(
+                            ([requirement, validateFunc]) => {
+                                const metRequirement = validateFunc(password);
+                                const requirementElement = document.querySelector(
+                                    `[data-requirement="${requirement}"]`
+                                );
+
+                                if (metRequirement) {
+                                    requirementElement.classList.add("met");
+                                    metRequirements++;
+                                } else {
+                                    requirementElement.classList.remove("met");
+                                }
+                            }
+                        );
+
+                        // Update strength meter
+                        const strength =
+                            (metRequirements / Object.keys(requirements).length) *
+                            100;
+                        strengthMeter.style.width = `${strength}%`;
+
+                        if (strength <= 25) {
+                            strengthMeter.style.backgroundColor = "#ff4d4d";
+                        } else if (strength <= 50) {
+                            strengthMeter.style.backgroundColor = "#ffd700";
+                        } else if (strength <= 75) {
+                            strengthMeter.style.backgroundColor = "#90EE90";
+                        } else {
+                            strengthMeter.style.backgroundColor = "#28a745";
+                        }
+                    });
+                }
+            });
+        </script>
     </body>
 </html>

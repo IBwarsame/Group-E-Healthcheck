@@ -2,8 +2,8 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordResetForm
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm, AuthenticationForm, PasswordResetForm
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
 from django.contrib import messages
 from .forms import CustomUserCreationForm, ProfileUpdateForm, UserUpdateForm
 from .decorators import anonymous_required
@@ -71,24 +71,41 @@ def logout_view(request):
 def profile_view(request):
     if request.method == 'POST':
         print("POST Data:", request.POST)
-        user_form = UserUpdateForm(request.POST, instance=request.user)
-        profile_form = ProfileUpdateForm(request.POST, instance=request.user.userprofile)
-
-        if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            profile_form.save()
-            messages.success(request, 'Your profile has been updated successfully!')
-            return redirect('profile')
+        
+        if 'password_change' in request.POST:
+            # Password change form was submitted
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                # Update the session to prevent the user from being logged out
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Your password has been updated successfully!')
+                return redirect('profile')
+            else:
+                # If form is invalid, we'll show the same form with errors
+                user_form = UserUpdateForm(instance=request.user)
+                profile_form = ProfileUpdateForm(instance=request.user.userprofile)
         else:
-            print("User Form Errors:", user_form.errors)
-            print("Profile Form Errors:", profile_form.errors)
+            user_form = UserUpdateForm(request.POST, instance=request.user)
+            profile_form = ProfileUpdateForm(request.POST, instance=request.user.userprofile)
+
+            if user_form.is_valid() and profile_form.is_valid():
+                user_form.save()
+                profile_form.save()
+                messages.success(request, 'Your profile has been updated successfully!')
+                return redirect('profile')
+            else:
+                print("User Form Errors:", user_form.errors)
+                print("Profile Form Errors:", profile_form.errors)
     else:
         user_form = UserUpdateForm(instance=request.user)
         profile_form = ProfileUpdateForm(instance=request.user.userprofile)
+        password_form = PasswordChangeForm(request.user)
 
     context = {
         'user_form': user_form,
         'profile_form': profile_form,
+        'password_form': password_form,
     }
     return render(request, 'profile.html', context)
 
