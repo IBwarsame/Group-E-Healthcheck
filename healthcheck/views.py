@@ -130,22 +130,28 @@ def dashboard_view(request):
 @login_required
 def team_dashboard_view(request):
     all_teams = Team.objects.all().order_by('name')
+    # Get sessions newest first for the dropdown default
     all_sessions = HealthCheckSession.objects.all().order_by('-start_date')
+    all_card_types = Vote.CARD_TYPES
 
+    # Get selections from GET parameters
     selected_team_id = request.GET.get('team')
     selected_session_id = request.GET.get('session')
+    # Get the state of the new checkbox (will be None if not checked)
+    my_votes_only = request.GET.get('my_votes_only')
 
     selected_team = None
     selected_session = None
-    display_data = [] # Use this list instead of the raw results dict
+    display_data = []
+    is_filtered_my_votes = bool(my_votes_only) # Convert to boolean for template
 
-    # Default selection logic (remains the same)
+    # Default selection logic
     if not selected_team_id and all_teams.exists():
         selected_team_id = all_teams.first().id
     if not selected_session_id and all_sessions.exists():
-        selected_session_id = all_sessions.first().id
+        selected_session_id = all_sessions.first().id # Default to latest session
 
-    # Fetch selected objects (remains the same)
+    # Fetch selected objects
     try:
         if selected_team_id:
             selected_team = Team.objects.get(id=selected_team_id)
@@ -160,10 +166,18 @@ def team_dashboard_view(request):
 
     # Fetch and process data if selection is valid
     if selected_team and selected_session:
-        vote_aggregation = Vote.objects.filter(
+        # Start with the base query
+        base_query = Vote.objects.filter(
             team=selected_team,
             session=selected_session
-        ).values('card_type').annotate(
+        )
+
+        # Apply user filter *if* the checkbox was checked
+        if is_filtered_my_votes:
+            base_query = base_query.filter(user=request.user)
+
+        # Perform aggregation on the (potentially filtered) query
+        vote_aggregation = base_query.values('card_type').annotate(
             good_count=Count(Case(When(vote='good', then=1))),
             neutral_count=Count(Case(When(vote='neutral', then=1))),
             needs_improvement_count=Count(Case(When(vote='needs_improvement', then=1))),
@@ -171,30 +185,29 @@ def team_dashboard_view(request):
             stable_count=Count(Case(When(progress='stable', then=1))),
             declining_count=Count(Case(When(progress='declining', then=1))),
             total_votes=Count('id')
-        ).order_by('card_type')
+        ).order_by('card_type') # Keep order consistent if needed
 
-        # Create a dictionary for quick lookup
         results_dict = {item['card_type']: item for item in vote_aggregation}
 
-        # *** Prepare data for the template ***
-        for code, name in Vote.CARD_TYPES:
-            result_data = results_dict.get(code) # Get results using the code, will be dict or None
+        for code, name in all_card_types:
             display_data.append({
                 'code': code,
                 'name': name,
-                'result': result_data # Attach the result dict (or None) directly
+                'result': results_dict.get(code)
             })
 
     context = {
         'title': 'Team Dashboard',
         'teams': all_teams,
         'sessions': all_sessions,
+        # 'all_card_types': all_card_types, # Not needed directly if using display_data
         'selected_team': selected_team,
         'selected_session': selected_session,
         'selected_team_id': selected_team_id,
         'selected_session_id': selected_session_id,
-        'display_data': display_data, # Pass the prepared list
-        # 'results' and 'all_card_types' are no longer needed directly
+        'display_data': display_data,
+        'is_filtered_my_votes': is_filtered_my_votes, # Pass filter state
+        # Remove chart-related context variables
     }
     return render(request, 'team_dashboard.html', context)
 
