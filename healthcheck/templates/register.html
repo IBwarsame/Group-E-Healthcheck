@@ -26,79 +26,56 @@
                 <h1>Register</h1>
 
                 <form method="post" id="registrationForm">
-                    {% csrf_token %} {% if form.errors %}
+                    {% csrf_token %}
+                    {% if form.errors %}
                     <div class="error-message">
-                        {% for field in form %} {% for error in field.errors %}
-                        <p>{{ error }}</p>
-                        {% endfor %} {% endfor %}
+                        {# Display non-field errors first (e.g., password mismatch) #}
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                        {# Then display field-specific errors #}
+                        {% for field in form %}
+                            {% if field.errors %}
+                                {% for error in field.errors %}
+                                    <p><strong>{{ field.label }}:</strong> {{ error }}</p>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
                     </div>
                     {% endif %}
 
                     <div class="input-group">
-                        <label for="{{ form.username.id_for_label }}"
-                            >Username</label
-                        >
+                        <label for="{{ form.username.id_for_label }}">Username</label>
                         {{ form.username }}
                     </div>
-
                     <div class="input-group">
                         <label for="{{ form.email.id_for_label }}">Email</label>
-                        {{ form.email }} {% if form.email.errors %}
-                        <div class="error-message">
-                            {% for error in form.email.errors %}
-                            <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                        {{ form.email }}
                     </div>
-
                     <div class="input-group">
-                        <label for="{{ form.first_name.id_for_label }}"
-                            >First Name</label
-                        >
-                        {{ form.first_name }} {% if form.first_name.errors %}
-                        <div class="error-message">
-                            {% for error in form.first_name.errors %}
-                            <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                        <label for="{{ form.first_name.id_for_label }}">First Name</label>
+                        {{ form.first_name }}
                     </div>
-
                     <div class="input-group">
-                        <label for="{{ form.last_name.id_for_label }}"
-                            >Last Name</label
-                        >
-                        {{ form.last_name }} {% if form.last_name.errors %}
-                        <div class="error-message">
-                            {% for error in form.last_name.errors %}
-                            <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                        <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+                        {{ form.last_name }}
                     </div>
-
                     <div class="input-group">
                         <label for="{{ form.role.id_for_label }}">Role</label>
                         <div class="select-wrapper">{{ form.role }}</div>
-                        {% if form.role.errors %}
-                        <div class="error-message">
-                            {% for error in form.role.errors %}
-                            <p>{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
                     </div>
 
                     <div id="dept-team-container">
-                        <div class="input-group">
+                        <div class="input-group" id="department-input-group">
                             <label for="{{ form.department.id_for_label }}">{{ form.department.label }}</label>
                             <div class="select-wrapper">{{ form.department }}</div>
                             {% if form.department.help_text %}
                                 <p class="help-text">{{ form.department.help_text }}</p>
                             {% endif %}
                         </div>
-                        <div class="input-group" id="team-input-group"> {# Added ID here #}
+                        <div class="input-group" id="team-input-group">
                             <label for="{{ form.team.id_for_label }}">{{ form.team.label }}</label>
                             <div class="select-wrapper">{{ form.team }}</div>
                             {% if form.team.help_text %}
@@ -110,79 +87,24 @@
                     <div class="input-group">
                         <label for="{{ form.password1.id_for_label }}">Password</label>
                         {{ form.password1 }}
-                        <div class="password-strength">
-                            <div class="strength-meter"></div>
-                        </div>
+                        <div class="password-strength"> <div class="strength-meter"></div> </div>
                         <div class="password-requirements">
-                            <div class="requirement" data-requirement="length">
-                                <span class="check-icon"
-                                    ><i class="fa-solid fa-check"></i
-                                ></span>
-                                <span class="cross-icon"
-                                    ><i class="fa-solid fa-xmark"></i
-                                ></span>
-                                At least 8 characters
-                            </div>
-                            <div class="requirement" data-requirement="number">
-                                <span class="check-icon"
-                                    ><i class="fa-solid fa-check"></i
-                                ></span>
-                                <span class="cross-icon"
-                                    ><i class="fa-solid fa-xmark"></i
-                                ></span>
-                                Contains a number
-                            </div>
-                            <div
-                                class="requirement"
-                                data-requirement="uppercase"
-                            >
-                                <span class="check-icon"
-                                    ><i class="fa-solid fa-check"></i
-                                ></span>
-                                <span class="cross-icon"
-                                    ><i class="fa-solid fa-xmark"></i
-                                ></span>
-                                Contains uppercase letter
-                            </div>
-                            <div
-                                class="requirement"
-                                data-requirement="lowercase"
-                            >
-                                <span class="check-icon"
-                                    ><i class="fa-solid fa-check"></i
-                                ></span>
-                                <span class="cross-icon"
-                                    ><i class="fa-solid fa-xmark"></i
-                                ></span>
-                                Contains lowercase letter
-                            </div>
-                            <div class="requirement" data-requirement="special">
-                                <span class="check-icon"
-                                    ><i class="fa-solid fa-check"></i
-                                ></span>
-                                <span class="cross-icon"
-                                    ><i class="fa-solid fa-xmark"></i
-                                ></span>
-                                Contains special character
-                            </div>
+                           <div class="requirement" data-requirement="length"><span class="check-icon"><i class="fa-solid fa-check"></i></span><span class="cross-icon"><i class="fa-solid fa-xmark"></i></span> At least 8 characters</div>
+                           <div class="requirement" data-requirement="number"><span class="check-icon"><i class="fa-solid fa-check"></i></span><span class="cross-icon"><i class="fa-solid fa-xmark"></i></span> Contains a number</div>
+                           <div class="requirement" data-requirement="uppercase"><span class="check-icon"><i class="fa-solid fa-check"></i></span><span class="cross-icon"><i class="fa-solid fa-xmark"></i></span> Contains uppercase letter</div>
+                           <div class="requirement" data-requirement="lowercase"><span class="check-icon"><i class="fa-solid fa-check"></i></span><span class="cross-icon"><i class="fa-solid fa-xmark"></i></span> Contains lowercase letter</div>
+                           <div class="requirement" data-requirement="special"><span class="check-icon"><i class="fa-solid fa-check"></i></span><span class="cross-icon"><i class="fa-solid fa-xmark"></i></span> Contains special character</div>
                         </div>
                     </div>
-
                     <div class="input-group">
-                        <label for="{{ form.password2.id_for_label }}"
-                            >Confirm Password</label
-                        >
+                        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
                         {{ form.password2 }}
                     </div>
                     <div class="login-button-group">
-                        <button type="submit" class="btn register-btn">
-                            Register
-                        </button>
+                        <button type="submit" class="btn register-btn">Register</button>
                     </div>
-
                     <div class="login-link">
-                        Already have an account?
-                        <a href="{% url 'login' %}">Login here</a>
+                        Already have an account? <a href="{% url 'login' %}">Login here</a>
                     </div>
                 </form>
             </div>
@@ -195,28 +117,25 @@
                 const roleSelect = document.getElementById('{{ form.role.auto_id }}');
                 const departmentSelect = document.getElementById('{{ form.department.auto_id }}');
                 const teamSelect = document.getElementById('{{ form.team.auto_id }}');
-                const deptTeamContainer = document.getElementById('dept-team-container');
+                const deptInputGroup = document.getElementById('department-input-group');
                 const teamInputGroup = document.getElementById('team-input-group');
                 const teamsDataElement = document.getElementById('teams-by-dept-data');
                 let teamsByDept = {};
-        
+
                 const initialTeamPlaceholder = "Select a department first";
                 const selectTeamPlaceholder = "Select your team";
                 const initialDeptRequired = departmentSelect ? departmentSelect.required : false;
                 const initialTeamRequired = teamSelect ? teamSelect.required : false;
-        
+
                 function setTeamOptions(options) {
                     if (!teamSelect) return;
                     teamSelect.innerHTML = '';
                     const placeholder = new Option(selectTeamPlaceholder, "");
                     teamSelect.add(placeholder);
-                    options.forEach(function(team) {
-                        const option = new Option(team.name, team.id);
-                        teamSelect.add(option);
-                    });
+                    options.forEach(function(team) { teamSelect.add(new Option(team.name, team.id)); });
                     teamSelect.value = "";
                 }
-        
+
                 function disableTeamSelect(message = initialTeamPlaceholder) {
                     if (!teamSelect) return;
                     teamSelect.disabled = true;
@@ -225,77 +144,72 @@
                     teamSelect.add(placeholder);
                     teamSelect.value = "";
                 }
-        
+
                 if (teamsDataElement) {
-                    try {
-                        teamsByDept = JSON.parse(JSON.parse(teamsDataElement.textContent));
-                    } catch (e) {
-                        console.error("Error parsing teams-by-dept data:", e);
-                    }
-                } else {
-                     console.error("Could not find teams-by-dept-data script tag.");
-                }
-        
+                     try { teamsByDept = JSON.parse(JSON.parse(teamsDataElement.textContent)); } catch (e) { console.error("Error parsing teams-by-dept data:", e); }
+                } else { console.error("Could not find teams-by-dept-data script tag."); }
+
                 function handleRoleChange() {
-                    if (!roleSelect || !departmentSelect || !teamSelect || !deptTeamContainer || !teamInputGroup) {
+                    if (!roleSelect || !deptInputGroup || !teamInputGroup || !departmentSelect || !teamSelect) {
                         console.error("One or more form elements not found for role handling.");
                         return;
                     }
                     const selectedRole = roleSelect.value;
-        
-                    const noTeamDeptRoles = ['seniorManager', 'departmentLeader'];
-        
-                    if (noTeamDeptRoles.includes(selectedRole)) {
-                        deptTeamContainer.classList.add('hidden-field');
+                    console.log("Role changed to:", selectedRole);
+
+                    if (selectedRole === 'seniorManager') {
+                        deptInputGroup.classList.add('hidden-field');
+                        teamInputGroup.classList.add('hidden-field');
                         departmentSelect.required = false;
                         teamSelect.required = false;
                         departmentSelect.value = '';
                         disableTeamSelect("N/A for this role");
+                        console.log("Hiding Dept/Team fields for Senior Manager");
+
+                    } else if (selectedRole === 'departmentLeader') {
+                        deptInputGroup.classList.remove('hidden-field');
+                        teamInputGroup.classList.add('hidden-field');
+                        departmentSelect.required = true;
+                        teamSelect.required = false;
+                        disableTeamSelect("N/A for this role");
+                        console.log("Showing Dept, Hiding Team field for Department Leader");
+
                     } else {
-                        deptTeamContainer.classList.remove('hidden-field');
+                        deptInputGroup.classList.remove('hidden-field');
+                        teamInputGroup.classList.remove('hidden-field');
                         departmentSelect.required = initialDeptRequired;
                         teamSelect.required = initialTeamRequired;
                         updateTeamOptions();
+                        console.log("Showing Dept/Team fields for Engineer/Team Leader");
                     }
                 }
 
                 function updateTeamOptions() {
-                    if (!departmentSelect || !teamSelect || !teamInputGroup || !deptTeamContainer) {
-                        console.error("Dept or Team select not found for updating options.");
-                        return;
-                    }
-                    if (deptTeamContainer.classList.contains('hidden-field')) {
+                    if (!departmentSelect || !teamSelect || !teamInputGroup) { return; }
+                    if (teamInputGroup.classList.contains('hidden-field')) {
                         disableTeamSelect("N/A for this role");
                         return;
                     }
-        
                     const selectedDeptId = departmentSelect.value;
-        
+                    console.log("Department changed to:", selectedDeptId);
                     if (selectedDeptId && teamsByDept[selectedDeptId] && teamsByDept[selectedDeptId].length > 0) {
                         teamSelect.disabled = false;
                         setTeamOptions(teamsByDept[selectedDeptId]);
-                        teamInputGroup.classList.remove('hidden-field');
+                        console.log("Populated teams for dept", selectedDeptId);
                     } else if (selectedDeptId) {
-                        disableTeamSelect("No teams in selected department");
-                        teamInputGroup.classList.remove('hidden-field');
-                    }
-                     else {
+                         disableTeamSelect("No teams in selected department");
+                         console.log("No teams found for dept", selectedDeptId);
+                    } else {
                         disableTeamSelect(initialTeamPlaceholder);
-                        teamInputGroup.classList.remove('hidden-field');
+                        console.log("Disabling team select - no department selected.");
                     }
                 }
-        
-                if (teamSelect) {
-                     disableTeamSelect();
-                }
-                if (roleSelect) {
-                    handleRoleChange();
-                }
-        
-        
+
+                handleRoleChange();
+
                 if (roleSelect) { roleSelect.addEventListener('change', handleRoleChange); } else { console.error("Role select element not found."); }
                 if (departmentSelect) { departmentSelect.addEventListener('change', updateTeamOptions); } else { console.error("Department select element not found."); }
-        
+
                 const passwordInput = document.getElementById("{{ form.password1.auto_id }}");
                 if (passwordInput) {
                     const requirements = {
@@ -306,7 +220,7 @@
                         special: (str) => /[^A-Za-z0-9]/.test(str),
                     };
                     const strengthMeter = document.querySelector(".strength-meter");
-        
+
                     passwordInput.addEventListener("input", function (e) {
                         const password = e.target.value;
                         let metRequirements = 0;
@@ -333,9 +247,9 @@
                         }
                     });
                 }
-        
+
             });
         </script>
-        
+
     </body>
 </html>

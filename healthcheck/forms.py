@@ -12,14 +12,11 @@ class CustomUserCreationForm(UserCreationForm):
         required=True,
         initial='engineer'
     )
-
     team = forms.ModelChoiceField(
         queryset=Team.objects.all().order_by('name'),
-        required=True,
+        required=False,
         empty_label="Select your team",
-        help_text="Select the team you belong to."
     )
-    
     department = forms.ModelChoiceField(
         queryset=Department.objects.all().order_by('name'),
         required=False,
@@ -28,48 +25,46 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = User
-
         fields = ["username", "first_name", "last_name", "email", "password1", "password2", "role", "team", "department"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.fields['role'].widget.attrs.update({
-            'class': 'input-field',
-        })
-        self.fields['team'].widget.attrs.update({
-            'class': 'input-field',
-        })
+        self.fields['role'].widget.attrs.update({'class': 'input-field'})
+        self.fields['team'].widget.attrs.update({'class': 'input-field'})
         self.fields['team'].label = "Primary Team"
-        
         self.fields['department'].widget.attrs.update({'class': 'input-field'})
         self.fields['department'].label = "Primary Department"
 
     def clean(self):
         cleaned_data = super().clean()
         role = cleaned_data.get("role")
+        department = cleaned_data.get("department")
+        team = cleaned_data.get("team")
 
-        if role == 'seniorManager':
-            cleaned_data['department'] = None
+        no_team_roles = ['seniorManager', 'departmentLeader']
+        team_required_roles = ['engineer', 'teamLeader']
+        dept_required_roles = ['departmentLeader']
+
+        if role in no_team_roles:
             cleaned_data['team'] = None
-            if 'department' in self._errors:
-                del self._errors['department']
             if 'team' in self._errors:
                 del self._errors['team']
-        else:
-            department = cleaned_data.get("department")
-            team = cleaned_data.get("team")
-
-            if department and team:
-                if team.department != department:
-                    self.add_error('team', f"Team '{team.name}' does not belong to the selected department '{department.name}'.")
-
+        elif role in team_required_roles:
             if not team:
                 self.add_error('team', 'Team selection is required for this role.')
+            elif department and team.department != department:
+                 self.add_error('team', f"Team '{team.name}' does not belong to the selected department '{department.name}'.")
 
+        if role in dept_required_roles:
+            if not department:
+                self.add_error('department', 'Department selection is required for this role.')
+        elif role == 'seniorManager':
+             cleaned_data['department'] = None
+             if 'department' in self._errors:
+                 del self._errors['department']
 
         return cleaned_data
-    
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.first_name = self.cleaned_data["first_name"]
@@ -78,7 +73,7 @@ class CustomUserCreationForm(UserCreationForm):
 
         if commit:
             user.save()
-            
+
             selected_department = self.cleaned_data.get("department")
             selected_role = self.cleaned_data["role"]
 
@@ -88,17 +83,14 @@ class CustomUserCreationForm(UserCreationForm):
                 department=selected_department
             )
 
-            if selected_role != 'seniorManager':
+            if selected_role not in ['seniorManager', 'departmentLeader']:
                 selected_team = self.cleaned_data.get("team")
                 if selected_team:
                     TeamMembership.objects.create(user=user, team=selected_team)
                 else:
-                    print(f"Warning: No team selected for non-senior manager user {user.username}")
-            
-        
+                    print(f"Warning: No team provided for role {selected_role} user {user.username}")
+
         return user
-    
-    
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:
