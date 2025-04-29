@@ -98,8 +98,7 @@
                                 <p class="help-text">{{ form.department.help_text }}</p>
                             {% endif %}
                         </div>
-
-                        <div class="input-group">
+                        <div class="input-group" id="team-input-group"> {# Added ID here #}
                             <label for="{{ form.team.id_for_label }}">{{ form.team.label }}</label>
                             <div class="select-wrapper">{{ form.team }}</div>
                             {% if form.team.help_text %}
@@ -109,9 +108,7 @@
                     </div>
 
                     <div class="input-group">
-                        <label for="{{ form.password1.id_for_label }}"
-                            >Password</label
-                        >
+                        <label for="{{ form.password1.id_for_label }}">Password</label>
                         {{ form.password1 }}
                         <div class="password-strength">
                             <div class="strength-meter"></div>
@@ -194,130 +191,151 @@
         {{ teams_by_dept_json|json_script:"teams-by-dept-data" }}
 
         <script>
-            document.addEventListener("DOMContentLoaded", function () {
+            document.addEventListener('DOMContentLoaded', function() {
                 const roleSelect = document.getElementById('{{ form.role.auto_id }}');
                 const departmentSelect = document.getElementById('{{ form.department.auto_id }}');
                 const teamSelect = document.getElementById('{{ form.team.auto_id }}');
                 const deptTeamContainer = document.getElementById('dept-team-container');
+                const teamInputGroup = document.getElementById('team-input-group');
                 const teamsDataElement = document.getElementById('teams-by-dept-data');
                 let teamsByDept = {};
-
+        
                 const initialTeamPlaceholder = "Select a department first";
-                const initialDeptRequired = departmentSelect.required;
-                const initialTeamRequired = teamSelect.required;
-
-                function disableTeamSelect() {
-                    teamSelect.disabled = true;
-                    while (teamSelect.options.length > 1) { teamSelect.remove(1); }
-                    if (teamSelect.options.length === 0) {
-                        const placeholderOption = new Option(initialTeamPlaceholder, "");
-                        teamSelect.add(placeholderOption);
-                    } else {
-                        teamSelect.options[0].text = initialTeamPlaceholder;
-                        teamSelect.options[0].value = "";
-                    }
+                const selectTeamPlaceholder = "Select your team";
+                const initialDeptRequired = departmentSelect ? departmentSelect.required : false;
+                const initialTeamRequired = teamSelect ? teamSelect.required : false;
+        
+                function setTeamOptions(options) {
+                    if (!teamSelect) return;
+                    teamSelect.innerHTML = '';
+                    const placeholder = new Option(selectTeamPlaceholder, "");
+                    teamSelect.add(placeholder);
+                    options.forEach(function(team) {
+                        const option = new Option(team.name, team.id);
+                        teamSelect.add(option);
+                    });
                     teamSelect.value = "";
                 }
-
+        
+                function disableTeamSelect(message = initialTeamPlaceholder) {
+                    if (!teamSelect) return;
+                    teamSelect.disabled = true;
+                    teamSelect.innerHTML = '';
+                    const placeholder = new Option(message, "");
+                    teamSelect.add(placeholder);
+                    teamSelect.value = "";
+                }
+        
                 if (teamsDataElement) {
-                    try { teamsByDept = JSON.parse(teamsDataElement.textContent); } catch (e) { console.error("Error parsing teams-by-dept data:", e); }
-                } else { console.error("Could not find teams-by-dept-data script tag."); }
-
-                function toggleDeptTeamVisibility() {
+                    try {
+                        teamsByDept = JSON.parse(JSON.parse(teamsDataElement.textContent));
+                    } catch (e) {
+                        console.error("Error parsing teams-by-dept data:", e);
+                    }
+                } else {
+                     console.error("Could not find teams-by-dept-data script tag.");
+                }
+        
+                function handleRoleChange() {
+                    if (!roleSelect || !departmentSelect || !teamSelect || !deptTeamContainer || !teamInputGroup) {
+                        console.error("One or more form elements not found for role handling.");
+                        return;
+                    }
                     const selectedRole = roleSelect.value;
-                    console.log("Role changed to:", selectedRole);
-                    if (selectedRole === 'seniorManager') {
+        
+                    const noTeamDeptRoles = ['seniorManager', 'departmentLeader'];
+        
+                    if (noTeamDeptRoles.includes(selectedRole)) {
                         deptTeamContainer.classList.add('hidden-field');
                         departmentSelect.required = false;
                         teamSelect.required = false;
                         departmentSelect.value = '';
-                        disableTeamSelect();
-                        console.log("Hiding Dept/Team fields for Senior Manager");
+                        disableTeamSelect("N/A for this role");
                     } else {
                         deptTeamContainer.classList.remove('hidden-field');
                         departmentSelect.required = initialDeptRequired;
                         teamSelect.required = initialTeamRequired;
                         updateTeamOptions();
-                        console.log("Showing Dept/Team fields");
                     }
                 }
 
                 function updateTeamOptions() {
-                    if (deptTeamContainer.classList.contains('hidden-field')) { disableTeamSelect(); return; }
+                    if (!departmentSelect || !teamSelect || !teamInputGroup || !deptTeamContainer) {
+                        console.error("Dept or Team select not found for updating options.");
+                        return;
+                    }
+                    if (deptTeamContainer.classList.contains('hidden-field')) {
+                        disableTeamSelect("N/A for this role");
+                        return;
+                    }
+        
                     const selectedDeptId = departmentSelect.value;
-                    console.log("Department changed to:", selectedDeptId);
-                    while (teamSelect.options.length > 1) { teamSelect.remove(1); }
-                    teamSelect.options[0].text = "-- Select your team --";
-                    teamSelect.options[0].value = "";
-                    teamSelect.value = "";
-                    if (selectedDeptId && teamsByDept[selectedDeptId]) {
+        
+                    if (selectedDeptId && teamsByDept[selectedDeptId] && teamsByDept[selectedDeptId].length > 0) {
                         teamSelect.disabled = false;
-                        const teams = teamsByDept[selectedDeptId];
-                        teams.forEach(function(team) { teamSelect.add(new Option(team.name, team.id)); });
-                        console.log("Populated teams for dept", selectedDeptId, teams);
-                    } else {
-                        disableTeamSelect();
-                        console.log("Disabling team select.");
+                        setTeamOptions(teamsByDept[selectedDeptId]);
+                        teamInputGroup.classList.remove('hidden-field');
+                    } else if (selectedDeptId) {
+                        disableTeamSelect("No teams in selected department");
+                        teamInputGroup.classList.remove('hidden-field');
+                    }
+                     else {
+                        disableTeamSelect(initialTeamPlaceholder);
+                        teamInputGroup.classList.remove('hidden-field');
                     }
                 }
-
-                disableTeamSelect();
-                toggleDeptTeamVisibility();
-
-                if (roleSelect) { roleSelect.addEventListener('change', toggleDeptTeamVisibility); } else { console.error("Role select element not found."); }
+        
+                if (teamSelect) {
+                     disableTeamSelect();
+                }
+                if (roleSelect) {
+                    handleRoleChange();
+                }
+        
+        
+                if (roleSelect) { roleSelect.addEventListener('change', handleRoleChange); } else { console.error("Role select element not found."); }
                 if (departmentSelect) { departmentSelect.addEventListener('change', updateTeamOptions); } else { console.error("Department select element not found."); }
-
-
-
-                const passwordInput = document.getElementById(
-                    "{{ form.password1.auto_id }}"
-                );
-                const requirements = {
-                    length: (str) => str.length >= 8,
-                    number: (str) => /[0-9]/.test(str),
-                    uppercase: (str) => /[A-Z]/.test(str),
-                    lowercase: (str) => /[a-z]/.test(str),
-                    special: (str) => /[^A-Za-z0-9]/.test(str),
-                };
-
-                const strengthMeter = document.querySelector(".strength-meter");
-
-                passwordInput.addEventListener("input", function (e) {
-                    const password = e.target.value;
-                    let metRequirements = 0;
-
-                    Object.entries(requirements).forEach(
-                        ([requirement, validateFunc]) => {
-                            const metRequirement = validateFunc(password);
-                            const requirementElement = document.querySelector(
-                                `[data-requirement="${requirement}"]`
-                            );
-
-                            if (metRequirement) {
-                                requirementElement.classList.add("met");
-                                metRequirements++;
-                            } else {
-                                requirementElement.classList.remove("met");
+        
+                const passwordInput = document.getElementById("{{ form.password1.auto_id }}");
+                if (passwordInput) {
+                    const requirements = {
+                        length: (str) => str.length >= 8,
+                        number: (str) => /[0-9]/.test(str),
+                        uppercase: (str) => /[A-Z]/.test(str),
+                        lowercase: (str) => /[a-z]/.test(str),
+                        special: (str) => /[^A-Za-z0-9]/.test(str),
+                    };
+                    const strengthMeter = document.querySelector(".strength-meter");
+        
+                    passwordInput.addEventListener("input", function (e) {
+                        const password = e.target.value;
+                        let metRequirements = 0;
+                        Object.entries(requirements).forEach(
+                            ([requirement, validateFunc]) => {
+                                const requirementElement = document.querySelector(`[data-requirement="${requirement}"]`);
+                                if (!requirementElement) return;
+                                const metRequirement = validateFunc(password);
+                                if (metRequirement) {
+                                    requirementElement.classList.add("met");
+                                    metRequirements++;
+                                } else {
+                                    requirementElement.classList.remove("met");
+                                }
                             }
+                        );
+                        if (strengthMeter) {
+                            const strength = (metRequirements / Object.keys(requirements).length) * 100;
+                            strengthMeter.style.width = `${strength}%`;
+                            if (strength <= 25) strengthMeter.style.backgroundColor = "#ff4d4d";
+                            else if (strength <= 50) strengthMeter.style.backgroundColor = "#ffd700";
+                            else if (strength <= 75) strengthMeter.style.backgroundColor = "#90EE90";
+                            else strengthMeter.style.backgroundColor = "#28a745";
                         }
-                    );
-
-                    const strength =
-                        (metRequirements / Object.keys(requirements).length) *
-                        100;
-                    strengthMeter.style.width = `${strength}%`;
-
-                    if (strength <= 25) {
-                        strengthMeter.style.backgroundColor = "#ff4d4d";
-                    } else if (strength <= 50) {
-                        strengthMeter.style.backgroundColor = "#ffd700";
-                    } else if (strength <= 75) {
-                        strengthMeter.style.backgroundColor = "#90EE90";
-                    } else {
-                        strengthMeter.style.backgroundColor = "#28a745";
-                    }
-                });
+                    });
+                }
+        
             });
         </script>
+        
     </body>
 </html>
