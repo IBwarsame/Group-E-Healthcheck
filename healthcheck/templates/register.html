@@ -25,7 +25,7 @@
                 />
                 <h1>Register</h1>
 
-                <form method="post">
+                <form method="post" id="registrationForm">
                     {% csrf_token %} {% if form.errors %}
                     <div class="error-message">
                         {% for field in form %} {% for error in field.errors %}
@@ -90,20 +90,22 @@
                         {% endif %}
                     </div>
 
-                    <div class="input-group">
-                        <label for="{{ form.department.id_for_label }}">{{ form.department.label }}</label>
-                        <div class="select-wrapper">{{ form.department }}</div>
-                        {% if form.department.help_text %}
-                            <p class="help-text">{{ form.department.help_text }}</p>
-                        {% endif %}
-                    </div>
+                    <div id="dept-team-container">
+                        <div class="input-group">
+                            <label for="{{ form.department.id_for_label }}">{{ form.department.label }}</label>
+                            <div class="select-wrapper">{{ form.department }}</div>
+                            {% if form.department.help_text %}
+                                <p class="help-text">{{ form.department.help_text }}</p>
+                            {% endif %}
+                        </div>
 
-                    <div class="input-group">
-                        <label for="{{ form.team.id_for_label }}">{{ form.team.label }}</label>
-                        <div class="select-wrapper">{{ form.team }}</div>
-                        {% if form.team.help_text %}
-                            <p class="help-text">{{ form.team.help_text }}</p>
-                        {% endif %}
+                        <div class="input-group">
+                            <label for="{{ form.team.id_for_label }}">{{ form.team.label }}</label>
+                            <div class="select-wrapper">{{ form.team }}</div>
+                            {% if form.team.help_text %}
+                                <p class="help-text">{{ form.team.help_text }}</p>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <div class="input-group">
@@ -193,70 +195,78 @@
 
         <script>
             document.addEventListener("DOMContentLoaded", function () {
+                const roleSelect = document.getElementById('{{ form.role.auto_id }}');
                 const departmentSelect = document.getElementById('{{ form.department.auto_id }}');
                 const teamSelect = document.getElementById('{{ form.team.auto_id }}');
+                const deptTeamContainer = document.getElementById('dept-team-container');
                 const teamsDataElement = document.getElementById('teams-by-dept-data');
                 let teamsByDept = {};
 
                 const initialTeamPlaceholder = "Select a department first";
+                const initialDeptRequired = departmentSelect.required;
+                const initialTeamRequired = teamSelect.required;
 
                 function disableTeamSelect() {
                     teamSelect.disabled = true;
-                    while (teamSelect.options.length > 1) {
-                        teamSelect.remove(1);
-                    }
+                    while (teamSelect.options.length > 1) { teamSelect.remove(1); }
                     if (teamSelect.options.length === 0) {
-                         const placeholderOption = new Option(initialTeamPlaceholder, "");
-                         teamSelect.add(placeholderOption);
+                        const placeholderOption = new Option(initialTeamPlaceholder, "");
+                        teamSelect.add(placeholderOption);
                     } else {
                         teamSelect.options[0].text = initialTeamPlaceholder;
                         teamSelect.options[0].value = "";
                     }
-                     teamSelect.value = "";
+                    teamSelect.value = "";
                 }
 
                 if (teamsDataElement) {
-                    try {
-                        teamsByDept = JSON.parse(JSON.parse(teamsDataElement.textContent));
-                    } catch (e) {
-                        console.error("Error parsing teams-by-dept data:", e);
-                    }
-                } else {
-                     console.error("Could not find teams-by-dept-data script tag.");
-                }
+                    try { teamsByDept = JSON.parse(teamsDataElement.textContent); } catch (e) { console.error("Error parsing teams-by-dept data:", e); }
+                } else { console.error("Could not find teams-by-dept-data script tag."); }
 
-                disableTeamSelect();
-                if (departmentSelect.value) {
-                    updateTeamOptions();
+                function toggleDeptTeamVisibility() {
+                    const selectedRole = roleSelect.value;
+                    console.log("Role changed to:", selectedRole);
+                    if (selectedRole === 'seniorManager') {
+                        deptTeamContainer.classList.add('hidden-field');
+                        departmentSelect.required = false;
+                        teamSelect.required = false;
+                        departmentSelect.value = '';
+                        disableTeamSelect();
+                        console.log("Hiding Dept/Team fields for Senior Manager");
+                    } else {
+                        deptTeamContainer.classList.remove('hidden-field');
+                        departmentSelect.required = initialDeptRequired;
+                        teamSelect.required = initialTeamRequired;
+                        updateTeamOptions();
+                        console.log("Showing Dept/Team fields");
+                    }
                 }
 
                 function updateTeamOptions() {
+                    if (deptTeamContainer.classList.contains('hidden-field')) { disableTeamSelect(); return; }
                     const selectedDeptId = departmentSelect.value;
-
-                    while (teamSelect.options.length > 1) {
-                        teamSelect.remove(1);
-                    }
-                    teamSelect.options[0].text = "Select your team";
+                    console.log("Department changed to:", selectedDeptId);
+                    while (teamSelect.options.length > 1) { teamSelect.remove(1); }
+                    teamSelect.options[0].text = "-- Select your team --";
                     teamSelect.options[0].value = "";
                     teamSelect.value = "";
-
                     if (selectedDeptId && teamsByDept[selectedDeptId]) {
                         teamSelect.disabled = false;
                         const teams = teamsByDept[selectedDeptId];
-                        teams.forEach(function(team) {
-                            const option = new Option(team.name, team.id);
-                            teamSelect.add(option);
-                        });
+                        teams.forEach(function(team) { teamSelect.add(new Option(team.name, team.id)); });
+                        console.log("Populated teams for dept", selectedDeptId, teams);
                     } else {
                         disableTeamSelect();
+                        console.log("Disabling team select.");
                     }
                 }
 
-                if (departmentSelect) {
-                    departmentSelect.addEventListener('change', updateTeamOptions);
-                } else {
-                    console.error("Department select element not found.");
-                }
+                disableTeamSelect();
+                toggleDeptTeamVisibility();
+
+                if (roleSelect) { roleSelect.addEventListener('change', toggleDeptTeamVisibility); } else { console.error("Role select element not found."); }
+                if (departmentSelect) { departmentSelect.addEventListener('change', updateTeamOptions); } else { console.error("Department select element not found."); }
+
 
 
                 const passwordInput = document.getElementById(

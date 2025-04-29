@@ -45,6 +45,31 @@ class CustomUserCreationForm(UserCreationForm):
         self.fields['department'].widget.attrs.update({'class': 'input-field'})
         self.fields['department'].label = "Primary Department"
 
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get("role")
+
+        if role == 'seniorManager':
+            cleaned_data['department'] = None
+            cleaned_data['team'] = None
+            if 'department' in self._errors:
+                del self._errors['department']
+            if 'team' in self._errors:
+                del self._errors['team']
+        else:
+            department = cleaned_data.get("department")
+            team = cleaned_data.get("team")
+
+            if department and team:
+                if team.department != department:
+                    self.add_error('team', f"Team '{team.name}' does not belong to the selected department '{department.name}'.")
+
+            if not team:
+                self.add_error('team', 'Team selection is required for this role.')
+
+
+        return cleaned_data
+    
     def save(self, commit=True):
         user = super().save(commit=False)
         user.first_name = self.cleaned_data["first_name"]
@@ -55,17 +80,25 @@ class CustomUserCreationForm(UserCreationForm):
             user.save()
             
             selected_department = self.cleaned_data.get("department")
+            selected_role = self.cleaned_data["role"]
 
             UserProfile.objects.create(
                 user=user,
-                role=self.cleaned_data["role"],
+                role=selected_role,
                 department=selected_department
             )
 
-            selected_team = self.cleaned_data["team"]
-
-            TeamMembership.objects.create(user=user, team=selected_team)
+            if selected_role != 'seniorManager':
+                selected_team = self.cleaned_data.get("team")
+                if selected_team:
+                    TeamMembership.objects.create(user=user, team=selected_team)
+                else:
+                    print(f"Warning: No team selected for non-senior manager user {user.username}")
+            
+        
         return user
+    
+    
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:

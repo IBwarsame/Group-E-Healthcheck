@@ -46,6 +46,14 @@ form {
     padding: 0;
 }
 
+#dept-team-container {
+    width: 100%;
+}
+
+.hidden-field {
+    display: none;
+}
+
 /* Shared styles for both login and register */
 .login-container,
 .register-container {
