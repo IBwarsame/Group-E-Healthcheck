@@ -544,33 +544,54 @@ def department_dashboard_view(request):
 
     user_role = user_profile.role
 
-
     if user_role not in ['departmentLeader', 'seniorManager']:
         messages.error(request, "You do not have permission to view the department dashboard.")
         return redirect('home')
 
-
     leader_department = user_profile.department
-    teams_in_leader_department = Team.objects.none()
+    all_departments = Department.objects.all()
+    relevant_departments_for_filter = all_departments
+
+    selected_department_id = request.GET.get('department')
+    selected_department_for_view = None
+
+    if user_role == 'departmentLeader':
+        if leader_department:
+            if not selected_department_id:
+                selected_department_id = str(leader_department.id)
+        else:
+            selected_department_id = None
+
+    if selected_department_id:
+        try:
+            if user_role == 'seniorManager':
+                selected_department_for_view = all_departments.get(id=selected_department_id)
+            elif user_role == 'departmentLeader':
+                selected_department_for_view = all_departments.get(id=selected_department_id)
+            else:
+                selected_department_for_view = None
+                selected_department_id = str(leader_department.id)
+
+        except Department.DoesNotExist:
+            messages.error(request, "Selected department not found.")
+            selected_department_for_view = None
+            selected_department_id = None
+
+    teams_in_viewed_department = Team.objects.none()
+    if selected_department_for_view:
+        teams_in_viewed_department = Team.objects.filter(department=selected_department_for_view).order_by('name')
+
     sessions = HealthCheckSession.objects.all().order_by('-start_date')
     own_dept_display_data = []
     other_department_summaries = []
     selected_session_id = request.GET.get('session')
     selected_session = None
 
-
     chart_labels = []
     chart_good_perc = []
     chart_neutral_perc = []
     chart_needsimp_perc = []
     chart_datasets = []
-
-
-    if leader_department:
-        teams_in_leader_department = Team.objects.filter(department=leader_department).order_by('name')
-    elif user_role == 'departmentLeader':
-         messages.warning(request, "You are assigned the Department Leader role but are not linked to a specific department. Please contact an administrator.")
-
 
     if not selected_session_id and sessions.exists():
         selected_session_id = sessions.first().id
@@ -582,84 +603,53 @@ def department_dashboard_view(request):
          selected_session = None
          selected_session_id = None
 
+    if selected_session and selected_department_for_view:
+        own_dept_vote_aggregation = Vote.objects.filter(
+            team__department=selected_department_for_view,
+            session=selected_session
+        ).values('card_type').annotate(
+            good_count=Count(Case(When(vote='good', then=1))),
+            neutral_count=Count(Case(When(vote='neutral', then=1))),
+            needs_improvement_count=Count(Case(When(vote='needs_improvement', then=1))),
+            improving_count=Count(Case(When(progress='improving', then=1))),
+            stable_count=Count(Case(When(progress='stable', then=1))),
+            declining_count=Count(Case(When(progress='declining', then=1))),
+            total_votes=Count('id')
+        ).order_by('card_type')
 
-    if selected_session:
+        results_dict = {item['card_type']: item for item in own_dept_vote_aggregation}
+        all_card_types = Vote.CARD_TYPES
+        own_dept_display_data = []
+        chart_labels, chart_good_perc, chart_neutral_perc, chart_needsimp_perc = [], [], [], []
 
-        if leader_department:
-            own_dept_vote_aggregation = Vote.objects.filter(
-                team__department=leader_department,
-                session=selected_session
-            ).values('card_type').annotate(
-                good_count=Count(Case(When(vote='good', then=1))),
-                neutral_count=Count(Case(When(vote='neutral', then=1))),
-                needs_improvement_count=Count(Case(When(vote='needs_improvement', then=1))),
-                improving_count=Count(Case(When(progress='improving', then=1))),
-                stable_count=Count(Case(When(progress='stable', then=1))),
-                declining_count=Count(Case(When(progress='declining', then=1))),
-                total_votes=Count('id')
-            ).order_by('card_type')
+        for code, name in all_card_types:
+            current_result = results_dict.get(code)
+            own_dept_display_data.append({'code': code, 'name': name, 'result': current_result})
+            
+            chart_labels.append(name)
+            if current_result and current_result.get('total_votes', 0) > 0:
+                total = float(current_result['total_votes'])
+                good = current_result.get('good_count', 0)
+                neutral = current_result.get('neutral_count', 0)
+                good_perc = round((good / total) * 100, 1)
+                neutral_perc = round((neutral / total) * 100, 1)
+                needs_imp_perc = round(100.0 - good_perc - neutral_perc, 1)
+                chart_good_perc.append(good_perc)
+                chart_neutral_perc.append(neutral_perc)
+                chart_needsimp_perc.append(needs_imp_perc)
+            else:
+                chart_good_perc.append(0); chart_neutral_perc.append(0); chart_needsimp_perc.append(0)
 
-            results_dict = {item['card_type']: item for item in own_dept_vote_aggregation}
-            all_card_types = Vote.CARD_TYPES
-            own_dept_display_data = []
+        chart_datasets = [
+            {'label': '% Good', 'data': chart_good_perc, 'backgroundColor': '#28a745'},
+            {'label': '% Neutral', 'data': chart_neutral_perc, 'backgroundColor': '#ffc107'},
+            {'label': '% Needs Improvement', 'data': chart_needsimp_perc, 'backgroundColor': '#dc3545'},
+        ]
 
+        other_departments_queryset = all_departments.exclude(id=selected_department_for_view.id)
+        other_department_summaries = [] # Reset
 
-            chart_labels = []
-            chart_good_perc = []
-            chart_neutral_perc = []
-            chart_needsimp_perc = []
-
-            for code, name in all_card_types:
-                current_result = results_dict.get(code)
-
-                own_dept_display_data.append({
-                    'code': code,
-                    'name': name,
-                    'result': current_result
-                })
-
-
-                chart_labels.append(name)
-                if current_result and current_result.get('total_votes', 0) > 0:
-                    total = float(current_result['total_votes'])
-                    good = current_result.get('good_count', 0)
-                    neutral = current_result.get('neutral_count', 0)
-
-
-                    good_perc = round((good / total) * 100, 1)
-                    neutral_perc = round((neutral / total) * 100, 1)
-
-                    needs_imp_perc_calc = 100.0 - good_perc - neutral_perc
-                    needs_imp_perc = round(needs_imp_perc_calc, 1)
-
-                    chart_good_perc.append(good_perc)
-                    chart_neutral_perc.append(neutral_perc)
-                    chart_needsimp_perc.append(needs_imp_perc)
-
-                else:
-
-                    chart_good_perc.append(0)
-                    chart_neutral_perc.append(0)
-                    chart_needsimp_perc.append(0)
-
-
-
-
-            chart_datasets = [
-                {'label': '% Good', 'data': chart_good_perc, 'backgroundColor': '#4CAF50'},
-                {'label': '% Neutral', 'data': chart_neutral_perc, 'backgroundColor': '#FFC107'},
-                {'label': '% Needs Improvement', 'data': chart_needsimp_perc, 'backgroundColor': '#F44336'}
-            ]
-
-
-
-
-        other_department_summaries = []
-        other_departments = Department.objects.all()
-        if leader_department:
-            other_departments = other_departments.exclude(id=leader_department.id)
-
-        for other_dept in other_departments:
+        for other_dept in other_departments_queryset:
             summary_aggregation = Vote.objects.filter(
                 team__department=other_dept,
                 session=selected_session
@@ -675,19 +665,19 @@ def department_dashboard_view(request):
                     'summary': summary_aggregation
                 })
 
-
-
     context = {
-        'title': f"{leader_department.name} Dept. Dashboard" if leader_department else "Department Dashboard",
+        'title': f"{selected_department_for_view.name} Dept. Summary" if selected_department_for_view else "Department Dashboard",
+        'viewed_department': selected_department_for_view,
         'department': leader_department,
-        'teams': teams_in_leader_department,
+        'departments_for_filter': relevant_departments_for_filter,
+        'teams_in_viewed_department': teams_in_viewed_department,
         'sessions': sessions,
+        'selected_department_id': selected_department_id,
         'selected_session': selected_session,
         'selected_session_id': selected_session_id,
         'own_dept_display_data': own_dept_display_data,
         'other_department_summaries': other_department_summaries,
         'user_role': user_role,
-
         'chart_labels_json': json.dumps(chart_labels),
         'chart_datasets_json': json.dumps(chart_datasets),
     }

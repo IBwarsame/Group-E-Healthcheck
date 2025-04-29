@@ -16,12 +16,10 @@
         ></script>
         <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
         <style>
-            /* Basic Dashboard Styles */
             .dashboard-container { max-width: 1200px; margin: 20px auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
             .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
             .dashboard-title { font-size: 1.8em; color: #333; }
-
-            /* Filter Styles */
+            .logo img { max-height: 40px; width: auto;}
             .filters { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; align-items: flex-end; }
             .filter-group { flex: 1 1 200px; min-width: 180px; }
             .filter-label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
@@ -29,12 +27,10 @@
             .filter-button-container { padding-top: 25px; flex-basis: auto; }
             .filter-button { padding: 10px 20px; background-color: #0077c8; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
             .filter-button:hover { background-color: #005fa3; }
-
-            /* Results Table Styles */
             .results-table { width: 100%; border-collapse: collapse; margin-top: 20px; margin-bottom: 30px; }
             .results-table th, .results-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
             .results-table th { background-color: #f8f9fa; font-weight: 600; color: #333; text-align: center; white-space: nowrap; }
-            .results-table td { text-align: center; color: #555; }
+            .results-table td { text-align: center; color: #555; vertical-align: middle; }
             .results-table tbody tr:hover { background-color: #f1f1f1; }
             .card-name-col { text-align: left; font-weight: 500; }
             .green-cell { color: #28a745; font-weight: bold; }
@@ -44,21 +40,16 @@
             .stable-cell { color: #6c757d; }
             .declining-cell { color: #ff7f50; }
             .progress-col i { margin-right: 4px; }
-
-            /* Other Department Summaries Styles */
             .other-summaries-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
             .other-summaries-title { font-size: 1.5em; margin-bottom: 20px; color: #333; }
             .summary-item { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #eee; }
             .summary-item h4 { margin-top: 0; margin-bottom: 10px; color: #005fa3; }
             .summary-item p { margin: 5px 0; font-size: 0.95em; }
             .summary-item strong { display: inline-block; min-width: 150px; }
-
-            /* Utility Styles */
             .no-data-message { text-align: center; padding: 30px; color: #777; font-style: italic; }
             .messages .error-message { background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
             .messages .success-message { background-color: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
             .messages .warning-message { background-color: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
-
             .chart-container { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; }
             #deptSummaryChart { max-height: 450px; width: 100% !important; }
             .chart-title { font-size: 1.5em; margin-bottom: 15px; color: #333; text-align: center;}
@@ -85,12 +76,25 @@
                 </div>
             {% endif %}
 
-            {% if department or user_role == 'seniorManager' %}
+            {% if user_role == 'departmentLeader' and department or user_role == 'seniorManager' %}
+
                 <form method="GET" action="{% url 'department_dashboard' %}">
                     <div class="filters">
                         <div class="filter-group">
+                            <label for="department-select" class="filter-label">Select Department to View</label>
+                            <select class="filter-select" id="department-select" name="department">
+                                <option value="">-- Select Department --</option>
+                                {% for dept in departments_for_filter %}
+                                    <option value="{{ dept.id }}" {% if dept.id|stringformat:"s" == selected_department_id %}selected{% endif %}>
+                                        {{ dept.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
                             <label for="session-select" class="filter-label">Select Session</label>
-                            <select class="filter-select" id="session-select" name="session">
+                            <select class="filter-select" id="session-select" name="session" {% if not selected_department_id and user_role == 'seniorManager' %}disabled{% endif %}>
                                 <option value="">-- Select Session --</option>
                                 {% for session in sessions %}
                                     <option value="{{ session.id }}" {% if session.id|stringformat:"s" == selected_session_id %}selected{% endif %}>
@@ -99,91 +103,69 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="filter-button-container">
-                            <button type="submit" class="filter-button">View Results</button>
-                        </div>
                     </div>
                 </form>
 
-                {% if selected_session %}
-                    
-                    {% if department %}
-                        <h2>
-                            Department Summary: {{ department.name }}
-                            <br>
-                            <small>Session: {{ selected_session.name }} ({{ selected_session.start_date }} - {{ selected_session.end_date }})</small>
-                        </h2>
-                        {% if own_dept_display_data %}
-                            <table class="results-table">
-                               <thead>
+                {% if viewed_department and selected_session %}
+                    <h2>
+                        Department Summary: {{ viewed_department.name }}
+                        <br>
+                        <small>Session: {{ selected_session.name }} ({{ selected_session.start_date }} - {{ selected_session.end_date }})</small>
+                    </h2>
+                    {% if own_dept_display_data %}
+                         <table class="results-table">
+                           <thead>
+                                <tr>
+                                    <th class="card-name-col">Health Check Card</th>
+                                    <th><i class="fas fa-smile green-cell"></i> Good</th>
+                                    <th><i class="fas fa-meh amber-cell"></i> Neutral</th>
+                                    <th><i class="fas fa-frown red-cell"></i> Needs Imp.</th>
+                                    <th class="progress-col"><i class="fas fa-arrow-up"></i> Improving</th>
+                                    <th class="progress-col"><i class="fas fa-equals"></i> Stable</th>
+                                    <th class="progress-col"><i class="fas fa-arrow-down"></i> Declining</th>
+                                    <th>Total Votes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in own_dept_display_data %}
                                     <tr>
-                                        <th class="card-name-col">Health Check Card</th>
-                                        <th><i class="fas fa-smile green-cell"></i> Good</th>
-                                        <th><i class="fas fa-meh amber-cell"></i> Neutral</th>
-                                        <th><i class="fas fa-frown red-cell"></i> Needs Imp.</th>
-                                        <th class="progress-col"><i class="fas fa-arrow-up"></i> Improving</th>
-                                        <th class="progress-col"><i class="fas fa-equals"></i> Stable</th>
-                                        <th class="progress-col"><i class="fas fa-arrow-down"></i> Declining</th>
-                                        <th>Total Votes</th>
+                                        <td class="card-name-col">{{ item.name }}</td>
+                                        {% with card_result=item.result %}
+                                            {% if card_result %}
+                                                <td class="green-cell">{{ card_result.good_count|default:0 }}</td>
+                                                <td class="amber-cell">{{ card_result.neutral_count|default:0 }}</td>
+                                                <td class="red-cell">{{ card_result.needs_improvement_count|default:0 }}</td>
+                                                <td class="improving-cell">{{ card_result.improving_count|default:0 }}</td>
+                                                <td class="stable-cell">{{ card_result.stable_count|default:0 }}</td>
+                                                <td class="declining-cell">{{ card_result.declining_count|default:0 }}</td>
+                                                <td>{{ card_result.total_votes|default:0 }}</td>
+                                            {% else %}
+                                                <td colspan="7" style="text-align:center; font-style:italic; color:#888;">No votes recorded</td>
+                                            {% endif %}
+                                        {% endwith %}
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {% for item in own_dept_display_data %}
-                                        <tr>
-                                            <td class="card-name-col">{{ item.name }}</td>
-                                            {% with card_result=item.result %}
-                                                {% if card_result %}
-                                                    <td class="green-cell">{{ card_result.good_count|default:0 }}</td>
-                                                    <td class="amber-cell">{{ card_result.neutral_count|default:0 }}</td>
-                                                    <td class="red-cell">{{ card_result.needs_improvement_count|default:0 }}</td>
-                                                    <td class="improving-cell">{{ card_result.improving_count|default:0 }}</td>
-                                                    <td class="stable-cell">{{ card_result.stable_count|default:0 }}</td>
-                                                    <td class="declining-cell">{{ card_result.declining_count|default:0 }}</td>
-                                                    <td>{{ card_result.total_votes|default:0 }}</td>
-                                                {% else %}
-                                                    <td colspan="7" style="text-align:center; font-style:italic; color:#888;">No votes recorded</td>
-                                                {% endif %}
-                                            {% endwith %}
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        {% else %}
-                            <p class="no-data-message">No voting data found for this department and session.</p>
-                        {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
 
                         {% if own_dept_display_data %}
                         <div class="chart-container">
-                            <h3 class="chart-title">Vote Distribution by Card <small>(% - {{ department.name }})</small></h3>
+                            <h3 class="chart-title">Vote Distribution by Card <small>(% - {{ viewed_department.name }})</small></h3>
                             <canvas id="deptSummaryChart"></canvas>
                             {{ chart_labels_json|json_script:"chart-labels" }}
                             {{ chart_datasets_json|json_script:"chart-datasets" }}
                         </div>
                         {% endif %}
 
+                    {% else %}
+                        <p class="no-data-message">No voting data found for this department and session.</p>
                     {% endif %}
 
-                    
-                    {% if other_department_summaries %}
-                        <div class="other-summaries-section">
-                            <h3 class="other-summaries-title">Other Department Summaries <small>(Session: {{ selected_session.name }})</small></h3>
-                            {% for summary_info in other_department_summaries %}
-                                <div class="summary-item">
-                                    <h4>{{ summary_info.department_name }}</h4>
-                                    <p><strong>Total Good Votes:</strong> {{ summary_info.summary.total_good|default:0 }}</p>
-                                    <p><strong>Total Neutral Votes:</strong> {{ summary_info.summary.total_neutral|default:0 }}</p>
-                                    <p><strong>Total Needs Imp. Votes:</strong> {{ summary_info.summary.total_needs_improvement|default:0 }}</p>
-                                    <p><strong>Total Votes Submitted:</strong> {{ summary_info.summary.total_dept_votes|default:0 }}</p>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% elif not department %}
-                         <p class="no-data-message" style="margin-top: 30px;">No summary data found for other departments in this session.</p>
-                    {% endif %}
+
                     
 
                 {% else %}
-                    <p class="no-data-message">Please select a session to view department summaries.</p>
+                    <p class="no-data-message">Please select a department and session to view summaries.</p>
                 {% endif %}
 
             {% elif user_role == 'departmentLeader' %}
@@ -194,74 +176,95 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-            
-            const deptChartLabelsElement = document.getElementById('chart-labels');
-            const deptChartDatasetsElement = document.getElementById('chart-datasets');
-            const deptCtxElement = document.getElementById('deptSummaryChart');
 
-            let deptChartLabels = [];
-            let deptChartDatasets = [];
-            let deptCtx = null;
+                const deptChartLabelsElement = document.getElementById('chart-labels');
+                const deptChartDatasetsElement = document.getElementById('chart-datasets');
+                const deptCtxElement = document.getElementById('deptSummaryChart');
 
+                let deptChartLabels = [];
+                let deptChartDatasets = [];
+                let deptCtx = null;
 
-            if (deptCtxElement) {
-                deptCtx = deptCtxElement.getContext('2d');
-            }
-            if (deptChartLabelsElement) {
-                const rawLabelsString = deptChartLabelsElement.textContent;
-                try {
-                    let parsedData = JSON.parse(rawLabelsString);
-                    if (typeof parsedData === 'string') {
-                        parsedData = JSON.parse(parsedData);
-                    }
-
-                    if (Array.isArray(parsedData)) {
-                        deptChartLabels = parsedData;
-                    } else {
-                        deptChartLabels = [];
-                    }
-                } catch (e) {
-                    deptChartLabels = [];
+                if (deptCtxElement) {
+                    deptCtx = deptCtxElement.getContext('2d');
                 }
-            }
 
-            if (deptChartDatasetsElement) {
-                const rawDatasetsString = deptChartDatasetsElement.textContent;
-                try {
-                    let parsedData = JSON.parse(rawDatasetsString);
-                    if (typeof parsedData === 'string') {
-                        parsedData = JSON.parse(parsedData);
-                    }
-
-                    if (Array.isArray(parsedData)) {
-                        deptChartDatasets = parsedData;
-                    } else {
-                        console.error("Datasets data is NOT an array after parsing attempts:", parsedData);
-                        deptChartDatasets = [];
-                    }
-                } catch (e) {
-                    console.error("Error parsing datasets JSON:", e);
-                    deptChartDatasets = [];
+                if (deptChartLabelsElement) {
+                    const rawLabelsString = deptChartLabelsElement.textContent;
+                    try {
+                        let parsedData = JSON.parse(rawLabelsString);
+                        if (typeof parsedData === 'string') {
+                            parsedData = JSON.parse(parsedData);
+                        }
+                        if (Array.isArray(parsedData)) {
+                            deptChartLabels = parsedData;
+                        } else { deptChartLabels = []; }
+                    } catch (e) { deptChartLabels = []; }
                 }
-            }
 
-
-
-            if (deptCtx && Array.isArray(deptChartLabels) && deptChartLabels.length > 0 && Array.isArray(deptChartDatasets) && deptChartDatasets.length > 0) {
-                try {
-                    const deptSummaryChart = new Chart(deptCtx, {
-                        type: 'bar',
-                        data: {
-                            labels: deptChartLabels,
-                            datasets: deptChartDatasets
-                        },
-                        options: {}
-                    });
-                } catch (chartError) {
-                    console.error("Error creating chart:", chartError);
+                if (deptChartDatasetsElement) {
+                    const rawDatasetsString = deptChartDatasetsElement.textContent;
+                     try {
+                        let parsedData = JSON.parse(rawDatasetsString);
+                        if (typeof parsedData === 'string') {
+                            parsedData = JSON.parse(parsedData);
+                        }
+                        if (Array.isArray(parsedData)) {
+                            deptChartDatasets = parsedData;
+                        } else { deptChartDatasets = []; }
+                    } catch (e) { deptChartDatasets = []; }
                 }
-            }
 
+                if (deptCtx && Array.isArray(deptChartLabels) && deptChartLabels.length > 0 && Array.isArray(deptChartDatasets) && deptChartDatasets.length > 0) {
+                    try {
+                        const deptSummaryChart = new Chart(deptCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: deptChartLabels,
+                                datasets: deptChartDatasets
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { position: 'top' },
+                                    title: { display: false },
+                                    tooltip: {
+                                        mode: 'index',
+                                        intersect: false,
+                                        callbacks: {
+                                             label: function(context) {
+                                                let label = context.dataset.label || '';
+                                                if (label) { label += ': '; }
+                                                if (context.parsed.y !== null) {
+                                                    label += context.parsed.y + '%';
+                                                }
+                                                return label;
+                                            }
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: { stacked: true },
+                                    y: {
+                                        stacked: true,
+                                        beginAtZero: true,
+                                        max: 100,
+                                        ticks: {
+                                            callback: function(value) { return value + "%" }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    } catch (chartError) {
+                        console.error("Error creating chart:", chartError);
+                    }
+                }
+
+                document.getElementById('department-select')?.addEventListener('change', function() {
+                    this.form.submit();
+                });
                 document.getElementById('session-select')?.addEventListener('change', function() {
                     this.form.submit();
                 });
