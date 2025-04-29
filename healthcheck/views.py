@@ -81,9 +81,28 @@ def register_view(request):
             login(request, user)
             messages.success(request, 'Successfully registered!')
             return redirect("home")
+        else:
+            teams_by_department = {}
+            teams = Team.objects.filter(department__isnull=False).select_related('department').order_by('name')
+            for team in teams:
+                dept_id = str(team.department.id)
+                if dept_id not in teams_by_department:
+                    teams_by_department[dept_id] = []
+                teams_by_department[dept_id].append({'id': team.id, 'name': team.name})
+            teams_by_dept_json = json.dumps(teams_by_department)
     else:
         form = CustomUserCreationForm()
-    return render(request, 'register.html', {'form': form})
+        
+        teams_by_department = {}
+        teams = Team.objects.filter(department__isnull=False).select_related('department').order_by('name')
+        for team in teams:
+            dept_id = str(team.department.id)
+            if dept_id not in teams_by_department:
+                teams_by_department[dept_id] = []
+            teams_by_department[dept_id].append({'id': team.id, 'name': team.name})
+        teams_by_dept_json = json.dumps(teams_by_department)
+    
+    return render(request, 'register.html', {'form': form, 'teams_by_dept_json': teams_by_dept_json})
 
 @anonymous_required
 def login_view(request):

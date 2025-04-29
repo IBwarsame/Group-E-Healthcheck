@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from django.contrib.auth.models import User
-from .models import UserProfile, Team, TeamMembership
+from .models import UserProfile, Team, TeamMembership, Department
 
 class CustomUserCreationForm(UserCreationForm):
     first_name = forms.CharField(required=True, max_length=30)
@@ -19,11 +19,17 @@ class CustomUserCreationForm(UserCreationForm):
         empty_label="Select your team",
         help_text="Select the team you belong to."
     )
+    
+    department = forms.ModelChoiceField(
+        queryset=Department.objects.all().order_by('name'),
+        required=False,
+        empty_label="Select your department",
+    )
 
     class Meta:
         model = User
 
-        fields = ["username", "first_name", "last_name", "email", "password1", "password2", "role", "team"]
+        fields = ["username", "first_name", "last_name", "email", "password1", "password2", "role", "team", "department"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -35,6 +41,9 @@ class CustomUserCreationForm(UserCreationForm):
             'class': 'input-field',
         })
         self.fields['team'].label = "Primary Team"
+        
+        self.fields['department'].widget.attrs.update({'class': 'input-field'})
+        self.fields['department'].label = "Primary Department"
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -44,8 +53,14 @@ class CustomUserCreationForm(UserCreationForm):
 
         if commit:
             user.save()
+            
+            selected_department = self.cleaned_data.get("department")
 
-            UserProfile.objects.create(user=user, role=self.cleaned_data["role"])
+            UserProfile.objects.create(
+                user=user,
+                role=self.cleaned_data["role"],
+                department=selected_department
+            )
 
             selected_team = self.cleaned_data["team"]
 
