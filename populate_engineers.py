@@ -4,7 +4,7 @@ import sys
 import traceback # Import traceback for detailed error info
 
 # --- !!! CONFIGURE YOUR PROJECT NAME HERE !!! ---
-SETTINGS_MODULE = 'SEVENTYSEVENMARKS.settings'
+SETTINGS_MODULE = 'GroupEHealthcheck.settings'
 # ---
 
 # --- Configuration ---

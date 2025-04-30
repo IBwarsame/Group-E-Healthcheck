@@ -39,7 +39,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "SEVENTYSEVENMARKS.urls"
+ROOT_URLCONF = "GroupEHealthcheck.urls"
 
 TEMPLATES = [
     {
@@ -57,7 +57,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "SEVENTYSEVENMARKS.wsgi.application"
+WSGI_APPLICATION = "GroupEHealthcheck.wsgi.application"
 
 DATABASES = {
     "default": {
