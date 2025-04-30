@@ -27,7 +27,7 @@ from .models import HealthCheckSession, Team, Vote, TeamMembership, UserProfile,
 def index(request):
     return redirect("home")
 
-# login.html
+# index.html
 @login_required
 def home(request):
 
@@ -105,6 +105,7 @@ def register_view(request):
     
     return render(request, 'register.html', {'form': form, 'teams_by_dept_json': teams_by_dept_json})
 
+# login.html
 @anonymous_required
 def login_view(request):
     if request.method == 'POST':

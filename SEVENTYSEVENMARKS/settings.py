@@ -17,7 +17,9 @@ LOGOUT_REDIRECT_URL = '/login'
 
 
 SESSION_COOKIE_AGE = 1209600
-SESSION_EXPIRE_AT_BROWSER_CLOSE = FalseINSTALLED_APPS = [
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
