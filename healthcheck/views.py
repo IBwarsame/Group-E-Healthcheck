@@ -171,14 +171,6 @@ def profile_view(request):
     }
     return render(request, 'profile.html', context)
 
-# test view: simple page for testing templates
-@login_required
-def test_view(request):
-    template = loader.get_template("test.html")
-    context = {
-        "title": "this is a test page",
-    }
-    return HttpResponse(template.render(context, request))
 
 # team dashboard view: displays voting results filtered by department, team, and session
 @login_required

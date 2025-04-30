@@ -1,3 +1,6 @@
+# Authors
+# Oliver Bryan, Smaran Holkar, Aaron Madhok
+
 from django.contrib import admin
 from .models import (
     Team, UserProfile, HealthCheckSession, Vote, TeamMembership, Department

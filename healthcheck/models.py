@@ -1,3 +1,6 @@
+# Authors
+# Oliver Bryan, Smaran Holkar, Aaron Madhok, Michael Robinson, Ibrahim Warsame 
+
 from django.contrib.auth.models import User
 from django.db import models
 

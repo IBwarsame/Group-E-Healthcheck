@@ -1,3 +1,7 @@
+<!-- Authors:
+    Smaran Holkar
+-->
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -146,8 +150,7 @@
                     <button type="submit" class="btn">Save changes</button>
                 </form>
             </div>
-            
-            
+
             <div class="profile-section">
                 <h2 class="section-title">Change Password</h2>
                 <form method="post">
@@ -165,7 +168,7 @@
                         </div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="input-group">
                         <label for="id_new_password1">New Password</label>
                         {{ password_form.new_password1 }}
@@ -180,7 +183,7 @@
                         <div class="password-strength">
                             <div class="strength-meter"></div>
                         </div>
-                        
+
                         <div class="password-requirements">
                             <div class="requirement" data-requirement="length">
                                 <i class="fas fa-check"></i>
@@ -190,11 +193,17 @@
                                 <i class="fas fa-check"></i>
                                 Contains a number
                             </div>
-                            <div class="requirement" data-requirement="uppercase">
+                            <div
+                                class="requirement"
+                                data-requirement="uppercase"
+                            >
                                 <i class="fas fa-check"></i>
                                 Contains uppercase letter
                             </div>
-                            <div class="requirement" data-requirement="lowercase">
+                            <div
+                                class="requirement"
+                                data-requirement="lowercase"
+                            >
                                 <i class="fas fa-check"></i>
                                 Contains lowercase letter
                             </div>
@@ -204,7 +213,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="input-group">
                         <label for="id_new_password2">Confirm New Password</label>
                         {{ password_form.new_password2 }}
@@ -216,15 +225,16 @@
                         </div>
                         {% endif %}
                     </div>
-                    
+
                     <button type="submit" class="btn">Change Password</button>
                 </form>
             </div>
         </div>
-        
+
         <script>
             document.addEventListener("DOMContentLoaded", function () {
-                const passwordInput = document.getElementById("id_new_password1");
+                const passwordInput =
+                    document.getElementById("id_new_password1");
                 const requirements = {
                     length: (str) => str.length >= 8,
                     number: (str) => /[0-9]/.test(str),
@@ -243,9 +253,10 @@
                         Object.entries(requirements).forEach(
                             ([requirement, validateFunc]) => {
                                 const metRequirement = validateFunc(password);
-                                const requirementElement = document.querySelector(
-                                    `[data-requirement="${requirement}"]`
-                                );
+                                const requirementElement =
+                                    document.querySelector(
+                                        `[data-requirement="${requirement}"]`
+                                    );
 
                                 if (metRequirement) {
                                     requirementElement.classList.add("met");
@@ -257,7 +268,8 @@
                         );
 
                         const strength =
-                            (metRequirements / Object.keys(requirements).length) *
+                            (metRequirements /
+                                Object.keys(requirements).length) *
                             100;
                         strengthMeter.style.width = `${strength}%`;
 
