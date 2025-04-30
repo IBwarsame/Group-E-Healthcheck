@@ -1,3 +1,6 @@
+# Authors
+# Oliver Bryan, Smaran Holkar, Aaron Madhok, Michael Robinson, Ibrahim Warsame 
+
 # all imports
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
