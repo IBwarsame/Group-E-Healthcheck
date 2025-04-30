@@ -82,20 +82,25 @@ class Vote(models.Model):
         ('stable', 'Stable'),
         ('declining', 'Declining'),
     ]
+    
     CARD_TYPES = [
-        ('code_base', 'Code Base Health'),
-        ('stakeholder', 'Stakeholder Engagement'),
-        ('release', 'Release Process'),
-        ('tech_debt', 'Technical Debt'),
-        ('teamwork', 'Teamwork & Collaboration'),
-        ('delivery', 'Delivery Speed'),
+        ('code_quality', 'Code Quality'),
+        ('requirements_clarity', 'Requirements Clarity'),
+        ('testing_coverage', 'Testing Coverage'),
+        ('deployment_process', 'Deployment Process'),
+        ('tooling_infrastructure', 'Tooling & Infrastructure'),
+        ('team_collaboration', 'Team Collaboration'),
+        ('delivery_predictability', 'Delivery Predictability'),
+        ('stakeholder_communication', 'Stakeholder Communication'),
+        ('knowledge_sharing', 'Knowledge Sharing'),
+        ('workload_balance', 'Workload Balance'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     session = models.ForeignKey(HealthCheckSession, on_delete=models.CASCADE)
-    card_type = models.CharField(max_length=20, choices=CARD_TYPES)
-    vote = models.CharField(max_length=20, choices=VOTE_CHOICES)
+    card_type = models.CharField(max_length=30, choices=CARD_TYPES)
+    vote = models.CharField(max_length=30, choices=VOTE_CHOICES)
     progress = models.CharField(max_length=20, choices=PROGRESS_CHOICES)
     comments = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
