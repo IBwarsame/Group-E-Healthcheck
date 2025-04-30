@@ -1,3 +1,4 @@
+# all imports
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.template import loader
@@ -19,8 +20,6 @@ from django import forms
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied
 import json
-
-
 from .models import HealthCheckSession, Team, Vote, TeamMembership, UserProfile, Department
 
 
@@ -28,6 +27,7 @@ from .models import HealthCheckSession, Team, Vote, TeamMembership, UserProfile,
 def index(request):
     return redirect("home")
 
+# login.html
 @login_required
 def home(request):
 
@@ -72,6 +72,7 @@ def home(request):
     }
     return render(request, 'home.html', context)
 
+# register.html
 @anonymous_required
 def register_view(request):
     if request.method == 'POST':
@@ -367,7 +368,7 @@ def password_reset_request(request):
                     context = {
                         "email": user.email,
                         "domain": request.META['HTTP_HOST'],
-                        "site_name": "Your Site",
+                        "site_name": "Sky Health Check",
                         "uid": urlsafe_base64_encode(force_bytes(user.pk)),
                         "user": user,
                         "token": default_token_generator.make_token(user),
@@ -375,7 +376,7 @@ def password_reset_request(request):
                     }
                     email_message = render_to_string(email_template_name, context)
                     try:
-                        send_mail(subject, email_message, "noreply@yoursite.com", [user.email], fail_silently=False)
+                        send_mail(subject, email_message, "noreply@skyhealthcheck.com", [user.email], fail_silently=False)
                     except BadHeaderError:
                         return HttpResponse("Invalid header found.")
                     return redirect("password_reset_done")
