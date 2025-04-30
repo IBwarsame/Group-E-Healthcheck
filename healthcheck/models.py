@@ -22,6 +22,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, choices=ROLES, default='engineer')
     
+    # user is linked to a department
     department = models.ForeignKey(
         Department,
         on_delete=models.SET_NULL,
@@ -37,6 +38,7 @@ class UserProfile(models.Model):
 class Team(models.Model):
     name = models.CharField(max_length=100)
 
+    # team is linked to a department
     department = models.ForeignKey(
         Department,
         on_delete=models.PROTECT,
@@ -45,6 +47,8 @@ class Team(models.Model):
         blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # team is linked to users through TeamMembership
     members = models.ManyToManyField(User, through='TeamMembership', related_name='teams_joined')
 
     def __str__(self):
@@ -83,6 +87,7 @@ class Vote(models.Model):
         ('declining', 'Declining'),
     ]
     
+    # all types of card that can be voted on
     CARD_TYPES = [
         ('code_quality', 'Code Quality'),
         ('requirements_clarity', 'Requirements Clarity'),
@@ -96,8 +101,13 @@ class Vote(models.Model):
         ('workload_balance', 'Workload Balance'),
     ]
 
+    # vote is linked to a user
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    # vote is linked to a team
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
+    
+    # vote is linked to a health check session
     session = models.ForeignKey(HealthCheckSession, on_delete=models.CASCADE)
     card_type = models.CharField(max_length=30, choices=CARD_TYPES)
     vote = models.CharField(max_length=30, choices=VOTE_CHOICES)

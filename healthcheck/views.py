@@ -23,11 +23,11 @@ import json
 from .models import HealthCheckSession, Team, Vote, TeamMembership, UserProfile, Department
 
 
-
+# redirects to the home view
 def index(request):
     return redirect("home")
 
-# index.html
+# home view: displays user's dashboard with teams and departments
 @login_required
 def home(request):
 
@@ -72,7 +72,7 @@ def home(request):
     }
     return render(request, 'home.html', context)
 
-# register.html
+# registration view: handles user sign-up and team selection
 @anonymous_required
 def register_view(request):
     if request.method == 'POST':
@@ -105,7 +105,7 @@ def register_view(request):
     
     return render(request, 'register.html', {'form': form, 'teams_by_dept_json': teams_by_dept_json})
 
-# login.html
+# login view: handles user authentication
 @anonymous_required
 def login_view(request):
     if request.method == 'POST':
@@ -122,11 +122,13 @@ def login_view(request):
         form = AuthenticationForm(request)
     return render(request, 'login.html', {'form': form})
 
+# logout view: logs out the user and redirects to home
 def logout_view(request):
     logout(request)
     messages.success(request, 'Logged out successfully!')
     return redirect("home")
 
+# profile view: allows users to update profile information and change password
 @login_required
 def profile_view(request):
     if request.method == 'POST':
@@ -169,6 +171,7 @@ def profile_view(request):
     }
     return render(request, 'profile.html', context)
 
+# test view: simple page for testing templates
 @login_required
 def test_view(request):
     template = loader.get_template("test.html")
@@ -177,6 +180,7 @@ def test_view(request):
     }
     return HttpResponse(template.render(context, request))
 
+# team dashboard view: displays voting results filtered by department, team, and session
 @login_required
 def team_dashboard_view(request):
 
@@ -355,6 +359,7 @@ class UserSetPasswordForm(forms.Form):
         return self.user
 
 
+# password reset request view: sends password reset emails to users
 @anonymous_required
 def password_reset_request(request):
     if request.method == "POST":
@@ -386,10 +391,12 @@ def password_reset_request(request):
         form = UserPasswordResetForm()
     return render(request, "password_reset.html", {"form": form})
 
+# password reset done view: informs user that reset email was sent
 @anonymous_required
 def password_reset_done(request):
     return render(request, "password_reset_done.html")
 
+# password reset confirm view: allows user to set a new password
 @anonymous_required
 def password_reset_confirm(request, uidb64, token):
     User = get_user_model()
@@ -412,14 +419,17 @@ def password_reset_confirm(request, uidb64, token):
     else:
         return render(request, "password_reset_invalid.html")
 
+# password reset complete view: confirms password has been reset
 @anonymous_required
 def password_reset_complete(request):
     return render(request, "password_reset_complete.html")
 
 
+# forgot password view: redirects to password reset request
 def forgot_password(request):
     return redirect('password_reset')
 
+# card form view: allows users to submit or update votes
 @login_required
 def card_form_view(request):
 
@@ -536,6 +546,7 @@ def card_form_view(request):
 
 Vote.CARD_TYPES_DICT = dict(Vote.CARD_TYPES)
 
+# department dashboard view: summarises votes and displays charts for departments
 @login_required
 def department_dashboard_view(request):
     try:
