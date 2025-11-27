@@ -1,0 +1,31 @@
+ENGINEER:
+username: eng1
+password: q
+
+ENGINEER2:
+username: eng2
+password: q
+
+ENGINEER50:
+username: eng50
+password: q
+
+TEAM LEADER:
+username: teamleader1
+password: q
+
+TEAM LEADER 2:
+username: teamleader2
+password: q
+
+DEPARTMENT LEADER:
+username: departmentleader1
+password: q
+
+DEPARTMENT LEADER 2:
+username: departmentleader2
+password: q
+
+SENIOR MANAGER:
+username: seniormanager1
+password: q
