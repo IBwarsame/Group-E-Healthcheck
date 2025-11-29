@@ -67,11 +67,11 @@ App is available at [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 *(Add your own screenshots in a `/screenshots` folder and display them here)*
 
-- ![Login Page](screenshots/login.png)
-- ![Voting Form](screenshots/vote_form.png)
-- ![Team Dashboard](screenshots/team_dashboard.png)
-- ![Department Dashboard](screenshots/department_dashboard.png)
-- ![Admin Panel](screenshots/admin.png)
+- ![Login Page](login%20page.png)
+- ![Home Page](home%20page.png)
+- ![Profile Page](profile%20page.png)
+- ![Health Check](health%20check%20page.png)
+- ![Dashboard](dashbaord%20page.png)
 
 ---
 
