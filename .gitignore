@@ -196,4 +196,5 @@ local_settings.py
 
 # Compiled Python files
 *.py[cod]
-*$py.class
+*$py.class.DS_Store
+screenshots/.DS_Store
